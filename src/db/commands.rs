@@ -32,7 +32,7 @@ pub fn parse(command_string: String) -> Command {
 }
 
 pub fn help() -> String {
-    const HELP_MESSAGE: &str = ("
+    const HELP_MESSAGE: &str = ("\
         Available Operations:\
         \n- \"Help\" - display available operations (this help message)\
         \n- \"Exit\" - quits the program\
@@ -45,6 +45,6 @@ pub fn help() -> String {
         \n- \"Transfer {employee} from {department} to {department}\" - move employee from first department to second\
         \n- \"Pull {employee} from {department}\" - remove employee from department\
         \n- \"Dissolve {department}\" - remove department and all employees in it\
-    ");
+    \n");
     String::from(HELP_MESSAGE)
 }
