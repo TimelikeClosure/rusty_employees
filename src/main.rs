@@ -1,12 +1,14 @@
+mod db;
+mod io;
+use db::QueryResponse::{Exit, Message};
+
 fn main() {
-    // Available Operations:
-    // - "List departments" - list departments alphabetically
-    // - "List employees" - list employees alphabetically
-    // - "List employees by department" - list employees and their dept, grouped by dept. alphabetically, sorted alphabetically
-    // - "List employees in {department}" - list employees in a dept, sorted alphabetically
-    // - "Commission {department}" - create new department
-    // - "Add {employee} to {department}" - create new employee under department
-    // - "Move {employee} from {department} to {department}" - move employee from first department to second
-    // - "Pull {employee} from {department}" - remove employee from department
-    // - "Dissolve {department}" - remove department and all employees in it
+    println!("\nWelcome to Departmental Employee Tracking System (TM)!\n");
+    loop {
+        match db::query(io::get_query()) {
+            Exit => break,
+            Message(message) => io::print_message(message),
+        }
+    }
+    println!("\nThank you for using Departmental Employee Tracking System (TM) for you labor tracking needs!\n");
 }
