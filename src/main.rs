@@ -1,6 +1,6 @@
 mod db;
 mod io;
-use db::QueryResponse::{Exit, Message, NoOp};
+use db::QueryResponse::{Exit, Message, NoOp, Table};
 
 fn main() {
     io::print_message(String::from(
@@ -14,6 +14,7 @@ fn main() {
             NoOp => continue,
             Exit => break,
             Message(message) => io::print_message(message),
+            Table(table) => io::print_table(table),
         }
     }
     io::print_message(String::from("\nThank you for using Departmental Employee Tracking System (TM) for you labor tracking needs!\n"));

@@ -1,11 +1,19 @@
-mod commands;
+use std::collections::HashMap;
 
+mod commands;
 use commands::Command;
+
+pub struct Table {
+    pub title: String,
+    pub headers: Vec<String>,
+    pub data: Vec<HashMap<String, String>>,
+}
 
 pub enum QueryResponse {
     Exit,
     NoOp,
     Message(String),
+    Table(Table),
 }
 
 pub fn query(query_string: String) -> QueryResponse {
@@ -25,5 +33,23 @@ pub fn query(query_string: String) -> QueryResponse {
         Command::Help => QueryResponse::Message(
             commands::help()
         ),
+        Command::ShowDepartments => {
+            let departments = commands::departments::list();
+            const COLUMN_NAME: &str = "Department";
+            QueryResponse::Table(
+                Table {
+                    title: String::from("Showing all Departments"),
+                    headers: vec![COLUMN_NAME.to_string()],
+                    data: departments.iter().map(|dept_name| {
+                        let mut row = HashMap::new();
+                        row.insert(COLUMN_NAME.to_string(), dept_name.to_owned());
+                        row
+                    }).fold(Vec::new(), |mut rows, row| {
+                        rows.push(row);
+                        rows
+                    }),
+                }
+            )
+        },
     }
 }
