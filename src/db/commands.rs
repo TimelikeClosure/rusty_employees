@@ -24,13 +24,13 @@ pub fn parse(command_string: String) -> Command {
         None => Command::EmptyCommand,
         Some(command_string) => match command_string.to_uppercase().as_str() {
             "EXIT" => Command::Exit,
-            "HELP" => Command::Help,
+            "HELP" | "HALP" => Command::Help,
             "SHOW" => {
                 let table = tokens.next();
                 match table {
                     None => Command::SyntaxErr(String::from("\"Show\" command must specify a list name")),
                     Some(list_name) => match list_name.to_uppercase().as_str() {
-                        "DEPARTMENTS" => match tokens.next() {
+                        "DEPARTMENTS" | "DEPT" | "DEPARTMENT" | "DEPTS" => match tokens.next() {
                             None => Command::ShowDepartments,
                             Some(extra_token) => Command::SyntaxErr(format!("Unexpected token \"{}\" after list name \"{}\"", extra_token, list_name)),
                         },
