@@ -1,5 +1,3 @@
-pub mod departments;
-
 pub enum Command {
     EmptyCommand,
     InvalidCommandErr(String),
@@ -23,21 +21,29 @@ pub fn parse(command_string: String) -> Command {
     match command_prefix {
         None => Command::EmptyCommand,
         Some(command_string) => match command_string.to_uppercase().as_str() {
-            "EXIT" => Command::Exit,
+            "EXIT" | "QUIT" | "LEAVE" | "BYE" => Command::Exit,
             "HELP" | "HALP" => Command::Help,
             "SHOW" => {
                 let table = tokens.next();
                 match table {
-                    None => Command::SyntaxErr(String::from("\"Show\" command must specify a list name")),
+                    None => Command::SyntaxErr(String::from(
+                        "\"Show\" command must specify a list name",
+                    )),
                     Some(list_name) => match list_name.to_uppercase().as_str() {
                         "DEPARTMENTS" | "DEPT" | "DEPARTMENT" | "DEPTS" => match tokens.next() {
                             None => Command::ShowDepartments,
-                            Some(extra_token) => Command::SyntaxErr(format!("Unexpected token \"{}\" after list name \"{}\"", extra_token, list_name)),
+                            Some(extra_token) => Command::SyntaxErr(format!(
+                                "Unexpected token \"{}\" after list name \"{}\"",
+                                extra_token, list_name
+                            )),
                         },
-                        _ => Command::SyntaxErr(format!("Cannot show \"{}\": list does not exist", list_name)),
+                        _ => Command::SyntaxErr(format!(
+                            "Cannot show \"{}\": list does not exist",
+                            list_name
+                        )),
                     },
                 }
-            },
+            }
             // "FORM" => {},
             // "DISSOLVE" => {},
             _ => Command::InvalidCommandErr(String::from(command_string)),
