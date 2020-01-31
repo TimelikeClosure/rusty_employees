@@ -47,7 +47,7 @@ pub fn parse(command_string: String) -> Command {
 
 pub fn help() -> String {
     const HELP_MESSAGE: &str = ("\
-        Available Operations:\
+        \nAvailable Operations:\
         \n- \"Help\" - display available operations (this help message)\
         \n- \"Exit\" - quits the program\
         \n- \"Show departments\" - list departments alphabetically\
