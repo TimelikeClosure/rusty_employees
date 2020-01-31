@@ -25,7 +25,9 @@ impl Departments {
     }
 
     pub fn list(&self) -> Vec<String> {
-        self.index
+        let mut pairs = self.index.iter().collect::<Vec<(&String, &String)>>();
+        pairs.sort_unstable_by_key(|(key, _value)| key.to_string());
+        pairs
             .iter()
             .map(|(_key, name)| name.to_string())
             .collect::<Vec<String>>()
