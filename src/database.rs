@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 mod commands;
 use commands::Command;
+mod errors;
+use errors::QueryError;
 mod store;
 use store::Store;
 
@@ -64,6 +66,19 @@ impl Database {
                     }
                 )
             },
+            Command::FormDepartment(department) => {
+                match self.store.departments.create(&department) {
+                    Ok(department) => QueryResponse::Message(format!("Formed \"{}\" department", department)),
+                    Err(query_error) => format_query_error(query_error),
+                }
+            },
         }
+    }
+}
+
+fn format_query_error(error: QueryError) -> QueryResponse {
+    use QueryResponse::Message;
+    match error {
+        QueryError::Conflict(message) => Message(format!("ERROR: Query conflict: {}", message)),
     }
 }

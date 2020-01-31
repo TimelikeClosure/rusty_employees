@@ -1,3 +1,5 @@
+use super::super::errors::QueryError;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
 pub struct Departments {
@@ -31,6 +33,19 @@ impl Departments {
             .iter()
             .map(|(_key, name)| name.to_string())
             .collect::<Vec<String>>()
+    }
+
+    pub fn create(&mut self, department: &String) -> Result<String, QueryError> {
+        match self.index.entry(to_key(department)) {
+            Entry::Vacant(entry) => {
+                entry.insert(to_name(department));
+                Ok(to_name(department))
+            }
+            Entry::Occupied(_) => Err(QueryError::Conflict(format!(
+                "Department \"{}\" already exists",
+                department
+            ))),
+        }
     }
 }
 
