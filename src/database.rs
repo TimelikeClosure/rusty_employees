@@ -72,6 +72,45 @@ impl Database {
                     Err(query_error) => format_query_error(query_error),
                 }
             },
+            Command::ListEmployeesByDepartment => {
+                let departments = self.store
+                    .departments()
+                    .list();
+                let department_employee_groups = departments
+                    .iter()
+                    .map(|department_name| {(
+                        department_name.to_owned(),
+                        self.store
+                            .department(department_name.as_str())
+                            .unwrap()
+                            .employees()
+                            .list()
+                    )})
+                    .collect::<Vec<(String, Vec<String>)>>();
+                let mut department_employees: Vec<(String, String)> = Vec::new();
+                for (department_name, employees) in department_employee_groups {
+                    for employee_name in employees {
+                        department_employees.push((department_name.to_owned(), employee_name.to_owned()));
+                    }
+                }
+                let department_employees = department_employees;
+                const COLUMN_NAMES: [&str; 2] = ["Department", "Employee"];
+                QueryResponse::Table(
+                    Table {
+                        title: String::from("Showing Employees grouped by Department"),
+                        headers: vec![COLUMN_NAMES[0].to_string(), COLUMN_NAMES[1].to_string()],
+                        data: department_employees.iter().map(|(department_name, employee_name)| {
+                            let mut row = HashMap::new();
+                            row.insert(COLUMN_NAMES[0].to_string(), department_name.to_owned());
+                            row.insert(COLUMN_NAMES[1].to_string(), employee_name.to_owned());
+                            row
+                        }).fold(Vec::new(), |mut rows, row| {
+                            rows.push(row);
+                            rows
+                        })
+                    }
+                )
+            },
             Command::ListEmployeesInDepartment(department_name) => {
                 match self.store.department(&department_name) {
                     Ok(department) => {

@@ -6,7 +6,7 @@ pub enum Command {
     Help,
     ShowDepartments,
     // ListEmployees,
-    // ListEmployeesByDepartment,
+    ListEmployeesByDepartment,
     ListEmployeesInDepartment(String),
     FormDepartment(String),
     // AssignEmployeeToDepartment(String, String),
@@ -52,7 +52,24 @@ pub fn parse(command_string: String) -> Command {
                     "EMPLOYEES" | "EMPLOYEE" => match tokens.next() {
                         None => Command::InvalidCommandErr(String::from(command_string)),
                         Some(group_op) => match group_op.to_uppercase().as_str() {
-                            "BY" => Command::InvalidCommandErr(String::from(command_string)),
+                            "BY" => match tokens.next() {
+                                None => Command::SyntaxErr(String::from(
+                                    "\"List employees by\" must specify a group by field"
+                                )),
+                                Some(group_list) => match group_list.to_uppercase().as_str() {
+                                    "DEPARTMENT" => match tokens.next() {
+                                        None => Command::ListEmployeesByDepartment,
+                                        Some(extra_token) => Command::SyntaxErr(format!(
+                                            "Unexpected token \"{}\" after group by field \"{}\"",
+                                            extra_token, group_list
+                                        ))
+                                    },
+                                    _ => Command::SyntaxErr(format!(
+                                        "\"{}\" is not a field employees can by grouped by",
+                                        group_list
+                                    )),
+                                },
+                            },
                             "IN" => match tokens.next() {
                                 None => Command::SyntaxErr(String::from(
                                     "Command \"List employees in\" must specify a department name",
