@@ -1,9 +1,15 @@
 use super::super::errors::QueryError;
+use super::employees::Employees;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
+struct Department {
+    name: String,
+    employees: Employees,
+}
+
 pub struct Departments {
-    index: HashMap<String, String>,
+    index: HashMap<String, Department>,
 }
 
 impl Departments {
@@ -20,14 +26,18 @@ impl Departments {
             ]
             .iter()
             .fold(HashMap::new(), |mut departments, department| {
-                departments.insert(to_key(&department), to_name(&department));
+                departments.insert(to_key(&department), Department::new(department));
                 departments
             }),
         }
     }
 
     pub fn list(&self) -> Vec<String> {
-        let mut pairs = self.index.iter().collect::<Vec<(&String, &String)>>();
+        let mut pairs = self
+            .index
+            .iter()
+            .map(|(key, department)| (key, department.name()))
+            .collect::<Vec<(&String, &String)>>();
         pairs.sort_unstable_by_key(|(key, _value)| key.to_string());
         pairs
             .iter()
@@ -38,7 +48,7 @@ impl Departments {
     pub fn create(&mut self, department: &String) -> Result<String, QueryError> {
         match self.index.entry(to_key(department)) {
             Entry::Vacant(entry) => {
-                entry.insert(to_name(department));
+                entry.insert(Department::new(department));
                 Ok(to_name(department))
             }
             Entry::Occupied(_) => Err(QueryError::Conflict(format!(
@@ -46,6 +56,19 @@ impl Departments {
                 department
             ))),
         }
+    }
+}
+
+impl Department {
+    pub fn new(name: &String) -> Department {
+        Department {
+            name: to_name(name),
+            employees: Employees::new(),
+        }
+    }
+
+    pub fn name(&self) -> &String {
+        &self.name
     }
 }
 

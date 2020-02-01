@@ -1,14 +1,19 @@
-pub mod departments;
+mod departments;
+mod employees;
 use departments::Departments;
 
 pub struct Store {
-    pub departments: Departments,
+    index: Departments,
 }
 
 impl Store {
     pub fn new() -> Store {
         Store {
-            departments: Departments::new(),
+            index: Departments::new(),
         }
+    }
+
+    pub fn departments(&mut self) -> &mut Departments {
+        &mut self.index
     }
 }

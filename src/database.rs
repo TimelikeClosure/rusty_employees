@@ -49,7 +49,7 @@ impl Database {
                 commands::help()
             ),
             Command::ShowDepartments => {
-                let departments = self.store.departments.list();
+                let departments = self.store.departments().list();
                 const COLUMN_NAME: &str = "Department";
                 QueryResponse::Table(
                     Table {
@@ -67,7 +67,7 @@ impl Database {
                 )
             },
             Command::FormDepartment(department) => {
-                match self.store.departments.create(&department) {
+                match self.store.departments().create(&department) {
                     Ok(department) => QueryResponse::Message(format!("Formed \"{}\" department", department)),
                     Err(query_error) => format_query_error(query_error),
                 }
