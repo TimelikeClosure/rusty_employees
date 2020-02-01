@@ -7,7 +7,7 @@ pub enum Command {
     ShowDepartments,
     // ListEmployees,
     // ListEmployeesByDepartment,
-    // ListEmployeesInDepartment(String),
+    ListEmployeesInDepartment(String),
     FormDepartment(String),
     // AssignEmployeeToDepartment(String, String),
     // TransferEmployeeBetweenDepartments(String, String, String),
@@ -44,6 +44,41 @@ pub fn parse(command_string: String) -> Command {
                     },
                 }
             }
+            "LIST" => match tokens.next() {
+                None => {
+                    Command::SyntaxErr(String::from("\"List\" command must specify a list name"))
+                }
+                Some(list_name) => match list_name.to_uppercase().as_str() {
+                    "EMPLOYEES" | "EMPLOYEE" => match tokens.next() {
+                        None => Command::InvalidCommandErr(String::from(command_string)),
+                        Some(group_op) => match group_op.to_uppercase().as_str() {
+                            "BY" => Command::InvalidCommandErr(String::from(command_string)),
+                            "IN" => match tokens.next() {
+                                None => Command::SyntaxErr(String::from(
+                                    "Command \"List employees in\" must specify a department name",
+                                )),
+                                Some(department_name) => match tokens.next() {
+                                    None => Command::ListEmployeesInDepartment(
+                                        department_name.to_string(),
+                                    ),
+                                    Some(extra_token) => Command::SyntaxErr(format!(
+                                        "Unexpected token \"{}\" after department name \"{}\"",
+                                        extra_token, department_name
+                                    )),
+                                },
+                            },
+                            _ => Command::SyntaxErr(format!(
+                                "Unexpected token \"{}\" after list name \"{}\"",
+                                group_op, list_name,
+                            )),
+                        },
+                    },
+                    _ => Command::SyntaxErr(format!(
+                        "Cannot list \"{}\": list does not exist",
+                        list_name,
+                    )),
+                },
+            },
             "FORM" => match tokens.next() {
                 None => Command::SyntaxErr(String::from(
                     "\"Form\" command must specify a department to form",

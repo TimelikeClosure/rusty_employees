@@ -12,6 +12,10 @@ impl Employee {
             name: to_name(name),
         }
     }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 pub struct Employees {
@@ -25,12 +29,25 @@ impl Employees {
         }
     }
 
+    pub fn list(&self) -> Vec<String> {
+        let mut pairs = self
+            .index
+            .iter()
+            .map(|(key, employee)| (key, employee.name()))
+            .collect::<Vec<(&String, &str)>>();
+        pairs.sort_unstable_by_key(|(key, _value)| key.to_string());
+        pairs
+            .iter()
+            .map(|(_key, name)| name.to_string())
+            .collect::<Vec<String>>()
+    }
+
     pub fn create(&mut self, employee: &str) -> Result<String, QueryError> {
         match self.index.entry(to_key(employee)) {
             Entry::Vacant(entry) => {
                 entry.insert(Employee::new(employee));
                 Ok(to_name(employee))
-            },
+            }
             Entry::Occupied(_) => Err(QueryError::Conflict(format!(
                 "Employee \"{}\" already exists",
                 employee,
@@ -47,8 +64,7 @@ fn to_name(value: &str) -> String {
     value
         .split_whitespace()
         .map(|word| {
-            word
-                .chars()
+            word.chars()
                 .enumerate()
                 .map(|(index, character)| {
                     if index == 0 {

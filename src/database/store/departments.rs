@@ -42,7 +42,10 @@ impl Departments {
 
     pub fn department(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
         match self.index.get_mut(&to_key(department_name)) {
-            None => Err(QueryError::NotFound(format!("Department \"{}\" not found", department_name))),
+            None => Err(QueryError::NotFound(format!(
+                "Department \"{}\" does not exist",
+                department_name
+            ))),
             Some(department) => Ok(department),
         }
     }

@@ -72,6 +72,29 @@ impl Database {
                     Err(query_error) => format_query_error(query_error),
                 }
             },
+            Command::ListEmployeesInDepartment(department_name) => {
+                match self.store.department(&department_name) {
+                    Ok(department) => {
+                        let employees = department.employees().list();
+                        const COLUMN_NAME: &str = "Employee";
+                        QueryResponse::Table(
+                            Table {
+                                title: format!("Showing Employees assigned to the {} Department", department.name()),
+                                headers: vec![COLUMN_NAME.to_string()],
+                                data: employees.iter().map(|employee_name| {
+                                    let mut row = HashMap::new();
+                                    row.insert(COLUMN_NAME.to_string(), employee_name.to_owned());
+                                    row
+                                }).fold(Vec::new(), |mut rows, row| {
+                                    rows.push(row);
+                                    rows
+                                })
+                            }
+                        )
+                    },
+                    Err(query_error) => format_query_error(query_error),
+                }
+            },
         }
     }
 }
@@ -80,6 +103,8 @@ fn format_query_error(error: QueryError) -> QueryResponse {
     use QueryResponse::Message;
     match error {
         QueryError::Conflict(message) => Message(format!("ERROR: Query conflict: {}", message)),
-        QueryError::NotFound(message) => Message(format!("ERROR: Query target not found: {}", message)),
+        QueryError::NotFound(message) => {
+            Message(format!("ERROR: Query target not found: {}", message))
+        }
     }
 }

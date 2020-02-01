@@ -1,8 +1,8 @@
 mod departments;
 mod dummy_data;
 mod employees;
-use departments::{Department, Departments};
 use super::errors::QueryError;
+use departments::{Department, Departments};
 
 pub struct Store {
     index: Departments,
