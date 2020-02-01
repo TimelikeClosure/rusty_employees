@@ -80,5 +80,6 @@ fn format_query_error(error: QueryError) -> QueryResponse {
     use QueryResponse::Message;
     match error {
         QueryError::Conflict(message) => Message(format!("ERROR: Query conflict: {}", message)),
+        QueryError::NotFound(message) => Message(format!("ERROR: Query target not found: {}", message)),
     }
 }

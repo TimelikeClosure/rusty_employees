@@ -1,6 +1,8 @@
 mod departments;
+mod dummy_data;
 mod employees;
-use departments::Departments;
+use departments::{Department, Departments};
+use super::errors::QueryError;
 
 pub struct Store {
     index: Departments,
@@ -8,12 +10,18 @@ pub struct Store {
 
 impl Store {
     pub fn new() -> Store {
-        Store {
+        let mut store = Store {
             index: Departments::new(),
-        }
+        };
+        dummy_data::populate(&mut store);
+        store
     }
 
     pub fn departments(&mut self) -> &mut Departments {
         &mut self.index
+    }
+
+    pub fn department(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
+        self.index.department(department_name)
     }
 }

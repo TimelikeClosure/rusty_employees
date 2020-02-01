@@ -3,9 +3,30 @@ use super::employees::Employees;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
-struct Department {
+pub struct Department {
     name: String,
     employees: Employees,
+}
+
+impl Department {
+    pub fn new(name: &String) -> Department {
+        Department {
+            name: to_name(name),
+            employees: Employees::new(),
+        }
+    }
+
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn employees(&mut self) -> &mut Employees {
+        &mut self.employees
+    }
+
+    pub fn assign(&mut self, employee_name: &str) -> Result<String, QueryError> {
+        self.employees().create(employee_name)
+    }
 }
 
 pub struct Departments {
@@ -15,20 +36,14 @@ pub struct Departments {
 impl Departments {
     pub fn new() -> Departments {
         Departments {
-            index: vec![
-                String::from("Accounting"),
-                String::from("Design"),
-                String::from("Engineering"),
-                String::from("Logistics"),
-                String::from("Production"),
-                String::from("Purchasing"),
-                String::from("Sales"),
-            ]
-            .iter()
-            .fold(HashMap::new(), |mut departments, department| {
-                departments.insert(to_key(&department), Department::new(department));
-                departments
-            }),
+            index: HashMap::new(),
+        }
+    }
+
+    pub fn department(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
+        match self.index.get_mut(&to_key(department_name)) {
+            None => Err(QueryError::NotFound(format!("Department \"{}\" not found", department_name))),
+            Some(department) => Ok(department),
         }
     }
 
@@ -56,19 +71,6 @@ impl Departments {
                 department
             ))),
         }
-    }
-}
-
-impl Department {
-    pub fn new(name: &String) -> Department {
-        Department {
-            name: to_name(name),
-            employees: Employees::new(),
-        }
-    }
-
-    pub fn name(&self) -> &String {
-        &self.name
     }
 }
 
