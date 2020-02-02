@@ -10,7 +10,7 @@ pub enum Command {
     ListEmployeesInDepartment(String),
     FormDepartment(String),
     AssignEmployeeToDepartment(String, String),
-    // TransferEmployeeBetweenDepartments(String, String, String),
+    TransferEmployeeBetweenDepartments(String, String, String),
     PullEmployeeFromDepartment(String, String),
     DissolveDepartment(String),
 }
@@ -118,6 +118,45 @@ pub fn parse(command_string: String) -> Command {
                                 }
                             },
                             _ => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+                        },
+                    },
+                }
+            }
+            "TRANSFER" => {
+                const TRANSFER_SYNTAX_ERR: &str = "\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to";
+                match tokens.next_back() {
+                    None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                    Some(to_department) => match tokens.next_back() {
+                        None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                        Some(to_op) => match to_op.to_uppercase().as_str() {
+                            "TO" => match tokens.next_back() {
+                                None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                                Some(from_department) => match tokens.next_back() {
+                                    None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                                    Some(from_op) => match from_op.to_uppercase().as_str() {
+                                        "FROM" => match tokens.next() {
+                                            None => Command::SyntaxErr(String::from(
+                                                TRANSFER_SYNTAX_ERR,
+                                            )),
+                                            Some(employee_first_name) => {
+                                                let mut employee =
+                                                    String::from(employee_first_name);
+                                                tokens.for_each(|token| {
+                                                    employee.push(' ');
+                                                    employee.push_str(token);
+                                                });
+                                                Command::TransferEmployeeBetweenDepartments(
+                                                    employee,
+                                                    from_department.to_string(),
+                                                    to_department.to_string(),
+                                                )
+                                            }
+                                        },
+                                        _ => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                                    },
+                                },
+                            },
+                            _ => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
                         },
                     },
                 }

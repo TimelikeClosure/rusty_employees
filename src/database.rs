@@ -185,6 +185,35 @@ impl Database {
                     Err(query_error) => format_query_error(query_error),
                 }
             },
+            Command::TransferEmployeeBetweenDepartments(employee_name, from_department_name, to_department_name) => {
+                if from_department_name == to_department_name {
+                    return QueryResponse::Message(String::from("ERROR: Cannot move employee from department to same department"));
+                }
+                match self.store.department(&from_department_name) {
+                    Err(query_error) => return format_query_error(query_error),
+                    Ok(from_department) => {
+                        if let Err(query_error) = from_department.employees().employee(&employee_name) {
+                            return format_query_error(query_error);
+                        }
+                    },
+                };
+                match self.store.department(&to_department_name) {
+                    Err(query_error) => return format_query_error(query_error),
+                    Ok(to_department) => {
+                        if let Err(_) = to_department.employees().create(&employee_name) {
+                            return format_query_error(QueryError::Conflict(format!(
+                                "Employee \"{}\" already exists in department \"{}\"",
+                                employee_name, to_department_name
+                            )));
+                        }
+                    },
+                };
+                self.store.department(&from_department_name).unwrap().employees().delete(&employee_name).unwrap();
+                QueryResponse::Message(format!(
+                    "Employee \"{}\" transferred from \"{}\" to \"{}\" department",
+                    employee_name, from_department_name, to_department_name
+                ))
+            },
             Command::PullEmployeeFromDepartment(employee_name, department_name) => {
                 match self.store.department(&department_name) {
                     Ok(department) => {

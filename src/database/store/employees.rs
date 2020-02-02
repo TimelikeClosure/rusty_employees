@@ -2,7 +2,7 @@ use super::super::errors::QueryError;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
-struct Employee {
+pub struct Employee {
     name: String,
 }
 
@@ -26,6 +26,16 @@ impl Employees {
     pub fn new() -> Employees {
         Employees {
             index: HashMap::new(),
+        }
+    }
+
+    pub fn employee(&mut self, employee_name: &str) -> Result<&mut Employee, QueryError> {
+        match self.index.get_mut(&to_key(employee_name)) {
+            None => Err(QueryError::NotFound(format!(
+                "Employee \"{}\" does not exist",
+                employee_name
+            ))),
+            Some(employee) => Ok(employee),
         }
     }
 
