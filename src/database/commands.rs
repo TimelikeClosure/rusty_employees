@@ -11,7 +11,7 @@ pub enum Command {
     FormDepartment(String),
     // AssignEmployeeToDepartment(String, String),
     // TransferEmployeeBetweenDepartments(String, String, String),
-    // PullEmployeeFromDepartment(String, String),
+    PullEmployeeFromDepartment(String, String),
     DissolveDepartment(String),
 }
 
@@ -96,6 +96,32 @@ pub fn parse(command_string: String) -> Command {
                     )),
                 },
             },
+            "PULL" => {
+                const PULL_SYNTAX_ERR: &str = "\"Pull\" command must specify an employee to pull and a department to pull from";
+                match tokens.next_back() {
+                    None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+                    Some(department) => match tokens.next_back() {
+                        None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+                        Some(group_op) => match group_op.to_uppercase().as_str() {
+                            "FROM" => match tokens.next() {
+                                None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+                                Some(employee_first_name) => {
+                                    let mut employee = String::from(employee_first_name);
+                                    tokens.for_each(|token| {
+                                        employee.push(' ');
+                                        employee.push_str(token);
+                                    });
+                                    Command::PullEmployeeFromDepartment(
+                                        employee,
+                                        department.to_string(),
+                                    )
+                                }
+                            },
+                            _ => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+                        },
+                    },
+                }
+            }
             "FORM" => match tokens.next() {
                 None => Command::SyntaxErr(String::from(
                     "\"Form\" command must specify a department to form",

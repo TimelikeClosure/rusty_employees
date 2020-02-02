@@ -173,6 +173,20 @@ impl Database {
                     Err(query_error) => format_query_error(query_error),
                 }
             },
+            Command::PullEmployeeFromDepartment(employee_name, department_name) => {
+                match self.store.department(&department_name) {
+                    Ok(department) => {
+                        match department.employees().delete(&employee_name) {
+                            Err(query_error) => format_query_error(query_error),
+                            Ok(_) => QueryResponse::Message(format!(
+                                "Pulled employee \"{}\" from department \"{}\"",
+                                employee_name, department_name
+                            )),
+                        }
+                    },
+                    Err(query_error) => format_query_error(query_error),
+                }
+            },
             Command::DissolveDepartment(department_name) => {
                 match self.store.departments().delete(&department_name) {
                     Ok(_) => QueryResponse::Message(format!(

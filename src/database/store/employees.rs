@@ -54,6 +54,16 @@ impl Employees {
             ))),
         }
     }
+
+    pub fn delete(&mut self, employee: &str) -> Result<(), QueryError> {
+        match self.index.remove(&to_key(employee)) {
+            None => Err(QueryError::NotFound(format!(
+                "Employee \"{}\" not found",
+                employee
+            ))),
+            Some(_) => Ok(()),
+        }
+    }
 }
 
 fn to_key(value: &str) -> String {
