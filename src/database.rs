@@ -173,6 +173,14 @@ impl Database {
                     Err(query_error) => format_query_error(query_error),
                 }
             },
+            Command::DissolveDepartment(department_name) => {
+                match self.store.departments().delete(&department_name) {
+                    Ok(_) => QueryResponse::Message(format!(
+                        "Dissolved \"{}\" department", department_name
+                    )),
+                    Err(query_error) => format_query_error(query_error),
+                }
+            },
         }
     }
 }

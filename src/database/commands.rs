@@ -12,7 +12,7 @@ pub enum Command {
     // AssignEmployeeToDepartment(String, String),
     // TransferEmployeeBetweenDepartments(String, String, String),
     // PullEmployeeFromDepartment(String, String),
-    // DissolveDepartment(String),
+    DissolveDepartment(String),
 }
 
 pub fn parse(command_string: String) -> Command {
@@ -107,7 +107,17 @@ pub fn parse(command_string: String) -> Command {
                     None => Command::FormDepartment(department.to_string()),
                 },
             },
-            // "DISSOLVE" => {},
+            "DISSOLVE" => match tokens.next() {
+                None => Command::SyntaxErr(String::from(
+                    "\"Dissolve\" command must specify a department to dissolve",
+                )),
+                Some(department) => match tokens.next() {
+                    Some(_) => Command::SyntaxErr(String::from(
+                        "Due to company policy, department names can only be one word long",
+                    )),
+                    None => Command::DissolveDepartment(department.to_string()),
+                },
+            },
             _ => Command::InvalidCommandErr(String::from(command_string)),
         },
     }
