@@ -9,7 +9,7 @@ pub enum Command {
     ListEmployeesByDepartment,
     ListEmployeesInDepartment(String),
     FormDepartment(String),
-    // AssignEmployeeToDepartment(String, String),
+    AssignEmployeeToDepartment(String, String),
     // TransferEmployeeBetweenDepartments(String, String, String),
     PullEmployeeFromDepartment(String, String),
     DissolveDepartment(String),
@@ -96,6 +96,32 @@ pub fn parse(command_string: String) -> Command {
                     )),
                 },
             },
+            "ASSIGN" => {
+                const ASSIGN_SYNTAX_ERR: &str = "\"Assign\" command must specify an employee to assign and a department to assign to";
+                match tokens.next_back() {
+                    None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+                    Some(department) => match tokens.next_back() {
+                        None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+                        Some(group_op) => match group_op.to_uppercase().as_str() {
+                            "TO" => match tokens.next() {
+                                None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+                                Some(employee_first_name) => {
+                                    let mut employee = String::from(employee_first_name);
+                                    tokens.for_each(|token| {
+                                        employee.push(' ');
+                                        employee.push_str(token);
+                                    });
+                                    Command::AssignEmployeeToDepartment(
+                                        employee,
+                                        department.to_string(),
+                                    )
+                                }
+                            },
+                            _ => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+                        },
+                    },
+                }
+            }
             "PULL" => {
                 const PULL_SYNTAX_ERR: &str = "\"Pull\" command must specify an employee to pull and a department to pull from";
                 match tokens.next_back() {

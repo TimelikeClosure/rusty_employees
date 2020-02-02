@@ -173,6 +173,18 @@ impl Database {
                     Err(query_error) => format_query_error(query_error),
                 }
             },
+            Command::AssignEmployeeToDepartment(employee_name, department_name) => {
+                match self.store.department(&department_name) {
+                    Ok(department) => match department.employees().create(&employee_name) {
+                        Ok(employee) => QueryResponse::Message(format!(
+                            "Assigned employee \"{}\" to {} department",
+                            employee, department_name
+                        )),
+                        Err(query_error) => format_query_error(query_error),
+                    },
+                    Err(query_error) => format_query_error(query_error),
+                }
+            },
             Command::PullEmployeeFromDepartment(employee_name, department_name) => {
                 match self.store.department(&department_name) {
                     Ok(department) => {
