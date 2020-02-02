@@ -5,7 +5,7 @@ pub enum Command {
     Exit,
     Help,
     ShowDepartments,
-    // ListEmployees,
+    ListEmployees,
     ListEmployeesByDepartment,
     ListEmployeesInDepartment(String),
     FormDepartment(String),
@@ -50,11 +50,11 @@ pub fn parse(command_string: String) -> Command {
                 }
                 Some(list_name) => match list_name.to_uppercase().as_str() {
                     "EMPLOYEES" | "EMPLOYEE" => match tokens.next() {
-                        None => Command::InvalidCommandErr(String::from(command_string)),
+                        None => Command::ListEmployees,
                         Some(group_op) => match group_op.to_uppercase().as_str() {
                             "BY" => match tokens.next() {
                                 None => Command::SyntaxErr(String::from(
-                                    "\"List employees by\" must specify a group by field"
+                                    "\"List employees by\" must specify a group by field",
                                 )),
                                 Some(group_list) => match group_list.to_uppercase().as_str() {
                                     "DEPARTMENT" => match tokens.next() {
@@ -62,7 +62,7 @@ pub fn parse(command_string: String) -> Command {
                                         Some(extra_token) => Command::SyntaxErr(format!(
                                             "Unexpected token \"{}\" after group by field \"{}\"",
                                             extra_token, group_list
-                                        ))
+                                        )),
                                     },
                                     _ => Command::SyntaxErr(format!(
                                         "\"{}\" is not a field employees can by grouped by",
