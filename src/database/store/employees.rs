@@ -1,6 +1,6 @@
 use super::super::errors::QueryError;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
 
 pub struct Employee {
     name: String,
@@ -19,13 +19,13 @@ impl Employee {
 }
 
 pub struct Employees {
-    index: HashMap<String, Employee>,
+    index: BTreeMap<String, Employee>,
 }
 
 impl Employees {
     pub fn new() -> Employees {
         Employees {
-            index: HashMap::new(),
+            index: BTreeMap::new(),
         }
     }
 
@@ -40,15 +40,9 @@ impl Employees {
     }
 
     pub fn list(&self) -> Vec<String> {
-        let mut pairs = self
-            .index
+        self.index
             .iter()
-            .map(|(key, employee)| (key, employee.name()))
-            .collect::<Vec<(&String, &str)>>();
-        pairs.sort_unstable_by_key(|(key, _value)| key.to_string());
-        pairs
-            .iter()
-            .map(|(_key, name)| name.to_string())
+            .map(|(_key, employee)| employee.name().to_string())
             .collect::<Vec<String>>()
     }
 
