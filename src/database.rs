@@ -93,7 +93,7 @@ impl Database {
                         employees.push(employee_name.to_owned());
                     }
                 }
-                employees.sort_unstable_by_key(|name| name.to_uppercase().to_owned());
+                employees.sort_by_key(|name| name.to_uppercase().to_owned());
                 let employees = employees;
                 const COLUMN_NAME: &str = "Employee";
                 QueryResponse::Table(
