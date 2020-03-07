@@ -52,14 +52,14 @@ pub fn print_table(table: Table) {
         }
         print!(" {name:width$} ", name = name, width = column_widths[index]);
     });
-    println!("");
+    println!();
     column_widths.iter().enumerate().for_each(|(index, width)| {
         if index > 0 {
             print!("|");
         }
         print!("-{:-<width$}-", "-", width = width);
     });
-    println!("");
+    println!();
 
     table.data.iter().for_each(|row| {
         table
@@ -76,7 +76,7 @@ pub fn print_table(table: Table) {
                 };
                 print!(" {:<width$} ", data, width = column_widths[index]);
             });
-        println!("");
+        println!();
     });
-    println!("");
+    println!();
 }
