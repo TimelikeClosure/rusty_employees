@@ -1,6 +1,6 @@
-use employees::io;
-use employees::database;
 use database::QueryResponse::{Exit, Message, NoOp, Table};
+use employees::database;
+use employees::io;
 
 fn main() {
     io::print_message(String::from(

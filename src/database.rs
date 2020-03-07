@@ -210,7 +210,7 @@ impl Database {
                 match self.store.department(&to_department_name) {
                     Err(query_error) => return format_query_error(query_error),
                     Ok(to_department) => {
-                        if let Err(_) = to_department.employees().create(&employee_name) {
+                        if to_department.employees().create(&employee_name).is_err() {
                             return format_query_error(QueryError::Conflict(format!(
                                 "Employee \"{}\" already exists in department \"{}\"",
                                 employee_name, to_department_name
