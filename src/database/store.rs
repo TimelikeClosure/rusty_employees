@@ -10,11 +10,13 @@ pub struct Store {
 
 impl Store {
     pub fn new() -> Store {
-        let mut store = Store {
+        Store {
             index: Departments::new(),
-        };
-        dummy_data::populate(&mut store);
-        store
+        }
+    }
+
+    pub fn seed(&mut self) {
+        dummy_data::populate(self);
     }
 
     pub fn departments(&self) -> &Departments {

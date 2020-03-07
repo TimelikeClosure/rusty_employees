@@ -30,6 +30,7 @@ pub enum QueryResponse {
     Table(Table),
 }
 
+/// Departmental employee database with data store and SQL-like query parsing
 pub struct Database {
     store: Store,
 }
@@ -39,6 +40,10 @@ impl Database {
         Database {
             store: Store::new(),
         }
+    }
+
+    pub fn seed(&mut self) {
+        self.store.seed()
     }
 
     pub fn query(&mut self, query_string: String) -> QueryResponse {
