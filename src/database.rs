@@ -1,3 +1,4 @@
+//! In-memory departmental employee database with SQL-like query parsing.
 use std::collections::HashMap;
 
 mod commands;
@@ -7,16 +8,25 @@ use errors::QueryError;
 mod store;
 use store::Store;
 
+/// Unformatted tabular data.
 pub struct Table {
+    /// Data set name.
     pub title: String,
+    /// Column names / header labels, in default order.
     pub headers: Vec<String>,
+    /// Row data, with each row containing a map of data by column name.
     pub data: Vec<HashMap<String, String>>,
 }
 
+/// Standardized query result output formats
 pub enum QueryResponse {
+    /// Stop listening for queries
     Exit,
+    /// No operation was performed
     NoOp,
+    /// String message output
     Message(String),
+    /// Tabular data output
     Table(Table),
 }
 
