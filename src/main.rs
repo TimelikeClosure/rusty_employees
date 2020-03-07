@@ -1,5 +1,5 @@
-mod database;
-mod io;
+use employees::io;
+use employees::database;
 use database::QueryResponse::{Exit, Message, NoOp, Table};
 
 fn main() {
