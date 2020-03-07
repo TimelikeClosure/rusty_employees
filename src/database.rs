@@ -63,82 +63,10 @@ impl Database {
                 self.create_department(department_name)
             },
             Command::ListEmployees => {
-                let departments = self.store
-                    .departments()
-                    .list();
-                let department_employee_groups = departments
-                    .iter()
-                    .map(|department_name| {(
-                        department_name.to_owned(),
-                        self.store
-                            .department(department_name.as_str())
-                            .unwrap()
-                            .employees()
-                            .list()
-                    )})
-                    .collect::<Vec<(String, Vec<String>)>>();
-                let mut employees: Vec<String> = Vec::new();
-                for (_department_name, employee_list) in department_employee_groups {
-                    for employee_name in employee_list {
-                        employees.push(employee_name.to_owned());
-                    }
-                }
-                employees.sort_by_key(|name| name.to_uppercase().to_owned());
-                let employees = employees;
-                const COLUMN_NAME: &str = "Employee";
-                QueryResponse::Table(
-                    Table {
-                        title: String::from("Showing all Employees"),
-                        headers: vec![COLUMN_NAME.to_string()],
-                        data: employees.iter().map(|employee| {
-                            let mut row = HashMap::new();
-                            row.insert(COLUMN_NAME.to_string(), employee.to_owned());
-                            row
-                        }).fold(Vec::new(), |mut rows, row| {
-                            rows.push(row);
-                            rows
-                        })
-                    }
-                )
+                self.list_employees()
             },
             Command::ListEmployeesByDepartment => {
-                let departments = self.store
-                    .departments()
-                    .list();
-                let department_employee_groups = departments
-                    .iter()
-                    .map(|department_name| {(
-                        department_name.to_owned(),
-                        self.store
-                            .department(department_name.as_str())
-                            .unwrap()
-                            .employees()
-                            .list()
-                    )})
-                    .collect::<Vec<(String, Vec<String>)>>();
-                let mut department_employees: Vec<(String, String)> = Vec::new();
-                for (department_name, employees) in department_employee_groups {
-                    for employee_name in employees {
-                        department_employees.push((department_name.to_owned(), employee_name.to_owned()));
-                    }
-                }
-                let department_employees = department_employees;
-                const COLUMN_NAMES: [&str; 2] = ["Department", "Employee"];
-                QueryResponse::Table(
-                    Table {
-                        title: String::from("Showing Employees grouped by Department"),
-                        headers: vec![COLUMN_NAMES[0].to_string(), COLUMN_NAMES[1].to_string()],
-                        data: department_employees.iter().map(|(department_name, employee_name)| {
-                            let mut row = HashMap::new();
-                            row.insert(COLUMN_NAMES[0].to_string(), department_name.to_owned());
-                            row.insert(COLUMN_NAMES[1].to_string(), employee_name.to_owned());
-                            row
-                        }).fold(Vec::new(), |mut rows, row| {
-                            rows.push(row);
-                            rows
-                        })
-                    }
-                )
+                self.list_employees_by_department()
             },
             Command::ListEmployeesInDepartment(department_name) => {
                 self.list_employees_in_department(department_name)
@@ -156,7 +84,9 @@ impl Database {
 
     fn create_department(&mut self, department_name: String) -> QueryResponse {
         match self.store.departments_mut().create(&department_name) {
-            Ok(department) => QueryResponse::Message(format!("Formed \"{}\" department", department)),
+            Ok(department) => {
+                QueryResponse::Message(format!("Formed \"{}\" department", department))
+            }
             Err(query_error) => format_query_error(query_error),
         }
     }
@@ -216,26 +146,112 @@ impl Database {
         })
     }
 
+    fn list_employees(&self) -> QueryResponse {
+        let departments = self.store.departments().list();
+        let department_employee_groups = departments
+            .iter()
+            .map(|department_name| {
+                (
+                    department_name.to_owned(),
+                    self.store
+                        .department(department_name.as_str())
+                        .unwrap()
+                        .employees()
+                        .list(),
+                )
+            })
+            .collect::<Vec<(String, Vec<String>)>>();
+        let mut employees: Vec<String> = Vec::new();
+        for (_department_name, employee_list) in department_employee_groups {
+            for employee_name in employee_list {
+                employees.push(employee_name.to_owned());
+            }
+        }
+        employees.sort_by_key(|name| name.to_uppercase().to_owned());
+        let employees = employees;
+        const COLUMN_NAME: &str = "Employee";
+        QueryResponse::Table(Table {
+            title: String::from("Showing all Employees"),
+            headers: vec![COLUMN_NAME.to_string()],
+            data: employees
+                .iter()
+                .map(|employee| {
+                    let mut row = HashMap::new();
+                    row.insert(COLUMN_NAME.to_string(), employee.to_owned());
+                    row
+                })
+                .fold(Vec::new(), |mut rows, row| {
+                    rows.push(row);
+                    rows
+                }),
+        })
+    }
+
+    fn list_employees_by_department(&self) -> QueryResponse {
+        let departments = self.store.departments().list();
+        let department_employee_groups = departments
+            .iter()
+            .map(|department_name| {
+                (
+                    department_name.to_owned(),
+                    self.store
+                        .department(department_name.as_str())
+                        .unwrap()
+                        .employees()
+                        .list(),
+                )
+            })
+            .collect::<Vec<(String, Vec<String>)>>();
+        let mut department_employees: Vec<(String, String)> = Vec::new();
+        for (department_name, employees) in department_employee_groups {
+            for employee_name in employees {
+                department_employees.push((department_name.to_owned(), employee_name.to_owned()));
+            }
+        }
+        let department_employees = department_employees;
+        const COLUMN_NAMES: [&str; 2] = ["Department", "Employee"];
+        QueryResponse::Table(Table {
+            title: String::from("Showing Employees grouped by Department"),
+            headers: vec![COLUMN_NAMES[0].to_string(), COLUMN_NAMES[1].to_string()],
+            data: department_employees
+                .iter()
+                .map(|(department_name, employee_name)| {
+                    let mut row = HashMap::new();
+                    row.insert(COLUMN_NAMES[0].to_string(), department_name.to_owned());
+                    row.insert(COLUMN_NAMES[1].to_string(), employee_name.to_owned());
+                    row
+                })
+                .fold(Vec::new(), |mut rows, row| {
+                    rows.push(row);
+                    rows
+                }),
+        })
+    }
+
     fn list_employees_in_department(&self, department_name: String) -> QueryResponse {
         match self.store.department(&department_name) {
             Ok(department) => {
                 let employees = department.employees().list();
                 const COLUMN_NAME: &str = "Employee";
-                QueryResponse::Table(
-                    Table {
-                        title: format!("Showing Employees assigned to the {} Department", department.name()),
-                        headers: vec![COLUMN_NAME.to_string()],
-                        data: employees.iter().map(|employee_name| {
+                QueryResponse::Table(Table {
+                    title: format!(
+                        "Showing Employees assigned to the {} Department",
+                        department.name()
+                    ),
+                    headers: vec![COLUMN_NAME.to_string()],
+                    data: employees
+                        .iter()
+                        .map(|employee_name| {
                             let mut row = HashMap::new();
                             row.insert(COLUMN_NAME.to_string(), employee_name.to_owned());
                             row
-                        }).fold(Vec::new(), |mut rows, row| {
+                        })
+                        .fold(Vec::new(), |mut rows, row| {
                             rows.push(row);
                             rows
-                        })
-                    }
-                )
-            },
+                        }),
+                })
+            }
             Err(query_error) => format_query_error(query_error),
         }
     }
