@@ -1,6 +1,8 @@
+//! Utilities for formatting and piping queries through stdin/stdout
 use crate::database::Table;
 use std::io::{stdin, stdout, Write};
 
+/// Retrieves a query from stdin
 pub fn get_query() -> String {
     let mut input = String::new();
     loop {
@@ -13,10 +15,12 @@ pub fn get_query() -> String {
     }
 }
 
+/// Formats query status messages to stdout
 pub fn print_message(message: String) {
     println!("{}", message);
 }
 
+/// Formats query output data to stdout
 pub fn print_table(table: Table) {
     println!("\n{}\n", table.title);
 
