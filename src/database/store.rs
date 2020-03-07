@@ -17,11 +17,19 @@ impl Store {
         store
     }
 
-    pub fn departments(&mut self) -> &mut Departments {
+    pub fn departments(&self) -> &Departments {
+        &self.index
+    }
+
+    pub fn departments_mut(&mut self) -> &mut Departments {
         &mut self.index
     }
 
-    pub fn department(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
+    pub fn department(&self, department_name: &str) -> Result<&Department, QueryError> {
         self.index.department(department_name)
+    }
+
+    pub fn department_mut(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
+        self.index.department_mut(department_name)
     }
 }

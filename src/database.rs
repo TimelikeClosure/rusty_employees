@@ -58,29 +58,9 @@ impl Database {
             Command::Help => QueryResponse::Message(
                 commands::help()
             ),
-            Command::ShowDepartments => {
-                let departments = self.store.departments().list();
-                const COLUMN_NAME: &str = "Department";
-                QueryResponse::Table(
-                    Table {
-                        title: String::from("Showing all Departments"),
-                        headers: vec![COLUMN_NAME.to_string()],
-                        data: departments.iter().map(|dept_name| {
-                            let mut row = HashMap::new();
-                            row.insert(COLUMN_NAME.to_string(), dept_name.to_owned());
-                            row
-                        }).fold(Vec::new(), |mut rows, row| {
-                            rows.push(row);
-                            rows
-                        }),
-                    }
-                )
-            },
-            Command::FormDepartment(department) => {
-                match self.store.departments().create(&department) {
-                    Ok(department) => QueryResponse::Message(format!("Formed \"{}\" department", department)),
-                    Err(query_error) => format_query_error(query_error),
-                }
+            Command::ShowDepartments => self.list_departments(),
+            Command::FormDepartment(department_name) => {
+                self.create_department(department_name)
             },
             Command::ListEmployees => {
                 let departments = self.store
@@ -161,92 +141,149 @@ impl Database {
                 )
             },
             Command::ListEmployeesInDepartment(department_name) => {
-                match self.store.department(&department_name) {
-                    Ok(department) => {
-                        let employees = department.employees().list();
-                        const COLUMN_NAME: &str = "Employee";
-                        QueryResponse::Table(
-                            Table {
-                                title: format!("Showing Employees assigned to the {} Department", department.name()),
-                                headers: vec![COLUMN_NAME.to_string()],
-                                data: employees.iter().map(|employee_name| {
-                                    let mut row = HashMap::new();
-                                    row.insert(COLUMN_NAME.to_string(), employee_name.to_owned());
-                                    row
-                                }).fold(Vec::new(), |mut rows, row| {
-                                    rows.push(row);
-                                    rows
-                                })
-                            }
-                        )
-                    },
-                    Err(query_error) => format_query_error(query_error),
-                }
+                self.list_employees_in_department(department_name)
             },
-            Command::AssignEmployeeToDepartment(employee_name, department_name) => {
-                match self.store.department(&department_name) {
-                    Ok(department) => match department.employees().create(&employee_name) {
-                        Ok(employee) => QueryResponse::Message(format!(
-                            "Assigned employee \"{}\" to {} department",
-                            employee, department_name
-                        )),
-                        Err(query_error) => format_query_error(query_error),
-                    },
-                    Err(query_error) => format_query_error(query_error),
-                }
-            },
+            Command::AssignEmployeeToDepartment(employee_name, department_name) => self.create_employee(employee_name, department_name),
             Command::TransferEmployeeBetweenDepartments(employee_name, from_department_name, to_department_name) => {
-                if from_department_name == to_department_name {
-                    return QueryResponse::Message(String::from("ERROR: Cannot move employee from department to same department"));
-                }
-                match self.store.department(&from_department_name) {
-                    Err(query_error) => return format_query_error(query_error),
-                    Ok(from_department) => {
-                        if let Err(query_error) = from_department.employees().employee(&employee_name) {
-                            return format_query_error(query_error);
-                        }
-                    },
-                };
-                match self.store.department(&to_department_name) {
-                    Err(query_error) => return format_query_error(query_error),
-                    Ok(to_department) => {
-                        if to_department.employees().create(&employee_name).is_err() {
-                            return format_query_error(QueryError::Conflict(format!(
-                                "Employee \"{}\" already exists in department \"{}\"",
-                                employee_name, to_department_name
-                            )));
-                        }
-                    },
-                };
-                self.store.department(&from_department_name).unwrap().employees().delete(&employee_name).unwrap();
-                QueryResponse::Message(format!(
-                    "Employee \"{}\" transferred from \"{}\" to \"{}\" department",
-                    employee_name, from_department_name, to_department_name
-                ))
+                self.move_employee(employee_name, from_department_name, to_department_name)
             },
             Command::PullEmployeeFromDepartment(employee_name, department_name) => {
-                match self.store.department(&department_name) {
-                    Ok(department) => {
-                        match department.employees().delete(&employee_name) {
-                            Err(query_error) => format_query_error(query_error),
-                            Ok(_) => QueryResponse::Message(format!(
-                                "Pulled employee \"{}\" from department \"{}\"",
-                                employee_name, department_name
-                            )),
-                        }
-                    },
-                    Err(query_error) => format_query_error(query_error),
-                }
+                self.delete_employee(employee_name, department_name)
             },
-            Command::DissolveDepartment(department_name) => {
-                match self.store.departments().delete(&department_name) {
-                    Ok(_) => QueryResponse::Message(format!(
-                        "Dissolved \"{}\" department", department_name
-                    )),
-                    Err(query_error) => format_query_error(query_error),
-                }
-            },
+            Command::DissolveDepartment(department_name) => self.delete_department(department_name),
         }
+    }
+
+    fn create_department(&mut self, department_name: String) -> QueryResponse {
+        match self.store.departments_mut().create(&department_name) {
+            Ok(department) => QueryResponse::Message(format!("Formed \"{}\" department", department)),
+            Err(query_error) => format_query_error(query_error),
+        }
+    }
+
+    fn create_employee(&mut self, employee_name: String, department_name: String) -> QueryResponse {
+        match self.store.department_mut(&department_name) {
+            Ok(department) => match department.employees_mut().create(&employee_name) {
+                Ok(employee) => QueryResponse::Message(format!(
+                    "Assigned employee \"{}\" to {} department",
+                    employee, department_name
+                )),
+                Err(query_error) => format_query_error(query_error),
+            },
+            Err(query_error) => format_query_error(query_error),
+        }
+    }
+
+    fn delete_department(&mut self, department_name: String) -> QueryResponse {
+        match self.store.departments_mut().delete(&department_name) {
+            Ok(_) => {
+                QueryResponse::Message(format!("Dissolved \"{}\" department", department_name))
+            }
+            Err(query_error) => format_query_error(query_error),
+        }
+    }
+
+    fn delete_employee(&mut self, employee_name: String, department_name: String) -> QueryResponse {
+        match self.store.department_mut(&department_name) {
+            Ok(department) => match department.employees_mut().delete(&employee_name) {
+                Err(query_error) => format_query_error(query_error),
+                Ok(_) => QueryResponse::Message(format!(
+                    "Pulled employee \"{}\" from department \"{}\"",
+                    employee_name, department_name
+                )),
+            },
+            Err(query_error) => format_query_error(query_error),
+        }
+    }
+
+    fn list_departments(&self) -> QueryResponse {
+        let departments = self.store.departments().list();
+        const COLUMN_NAME: &str = "Department";
+        QueryResponse::Table(Table {
+            title: String::from("Showing all Departments"),
+            headers: vec![COLUMN_NAME.to_string()],
+            data: departments
+                .iter()
+                .map(|dept_name| {
+                    let mut row = HashMap::new();
+                    row.insert(COLUMN_NAME.to_string(), dept_name.to_owned());
+                    row
+                })
+                .fold(Vec::new(), |mut rows, row| {
+                    rows.push(row);
+                    rows
+                }),
+        })
+    }
+
+    fn list_employees_in_department(&self, department_name: String) -> QueryResponse {
+        match self.store.department(&department_name) {
+            Ok(department) => {
+                let employees = department.employees().list();
+                const COLUMN_NAME: &str = "Employee";
+                QueryResponse::Table(
+                    Table {
+                        title: format!("Showing Employees assigned to the {} Department", department.name()),
+                        headers: vec![COLUMN_NAME.to_string()],
+                        data: employees.iter().map(|employee_name| {
+                            let mut row = HashMap::new();
+                            row.insert(COLUMN_NAME.to_string(), employee_name.to_owned());
+                            row
+                        }).fold(Vec::new(), |mut rows, row| {
+                            rows.push(row);
+                            rows
+                        })
+                    }
+                )
+            },
+            Err(query_error) => format_query_error(query_error),
+        }
+    }
+
+    fn move_employee(
+        &mut self,
+        employee_name: String,
+        from_department_name: String,
+        to_department_name: String,
+    ) -> QueryResponse {
+        if from_department_name == to_department_name {
+            return QueryResponse::Message(String::from(
+                "ERROR: Cannot move employee from department to same department",
+            ));
+        }
+        match self.store.department(&from_department_name) {
+            Err(query_error) => return format_query_error(query_error),
+            Ok(from_department) => {
+                if let Err(query_error) = from_department.employees().employee(&employee_name) {
+                    return format_query_error(query_error);
+                }
+            }
+        };
+        match self.store.department_mut(&to_department_name) {
+            Err(query_error) => return format_query_error(query_error),
+            Ok(to_department) => {
+                if to_department
+                    .employees_mut()
+                    .create(&employee_name)
+                    .is_err()
+                {
+                    return format_query_error(QueryError::Conflict(format!(
+                        "Employee \"{}\" already exists in department \"{}\"",
+                        employee_name, to_department_name
+                    )));
+                }
+            }
+        };
+        self.store
+            .department_mut(&from_department_name)
+            .unwrap()
+            .employees_mut()
+            .delete(&employee_name)
+            .unwrap();
+        QueryResponse::Message(format!(
+            "Employee \"{}\" transferred from \"{}\" to \"{}\" department",
+            employee_name, from_department_name, to_department_name
+        ))
     }
 }
 

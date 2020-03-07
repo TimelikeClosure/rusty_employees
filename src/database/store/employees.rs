@@ -29,8 +29,8 @@ impl Employees {
         }
     }
 
-    pub fn employee(&mut self, employee_name: &str) -> Result<&mut Employee, QueryError> {
-        match self.index.get_mut(&to_key(employee_name)) {
+    pub fn employee(&self, employee_name: &str) -> Result<&Employee, QueryError> {
+        match self.index.get(&to_key(employee_name)) {
             None => Err(QueryError::NotFound(format!(
                 "Employee \"{}\" does not exist",
                 employee_name

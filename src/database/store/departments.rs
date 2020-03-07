@@ -20,12 +20,16 @@ impl Department {
         &self.name
     }
 
-    pub fn employees(&mut self) -> &mut Employees {
+    pub fn employees(&self) -> &Employees {
+        &self.employees
+    }
+
+    pub fn employees_mut(&mut self) -> &mut Employees {
         &mut self.employees
     }
 
     pub fn assign(&mut self, employee_name: &str) -> Result<String, QueryError> {
-        self.employees().create(employee_name)
+        self.employees_mut().create(employee_name)
     }
 }
 
@@ -40,7 +44,17 @@ impl Departments {
         }
     }
 
-    pub fn department(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
+    pub fn department(&self, department_name: &str) -> Result<&Department, QueryError> {
+        match self.index.get(&to_key(department_name)) {
+            None => Err(QueryError::NotFound(format!(
+                "Department \"{}\" does not exist",
+                department_name
+            ))),
+            Some(department) => Ok(department),
+        }
+    }
+
+    pub fn department_mut(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
         match self.index.get_mut(&to_key(department_name)) {
             None => Err(QueryError::NotFound(format!(
                 "Department \"{}\" does not exist",

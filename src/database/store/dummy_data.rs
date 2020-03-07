@@ -112,11 +112,11 @@ pub fn populate(store: &mut Store) {
     DATA.iter()
     .for_each(|(department_name, employees)| {
         store
-            .departments()
+            .departments_mut()
             .create(&department_name.to_string())
             .expect(format!("Dummy data failed to populate on forming department \"{}\"", department_name).as_str());
         let department = store
-            .department(department_name)
+            .department_mut(department_name)
             .expect(format!("Dummy data failed to retrieve department \"{}\"", department_name).as_str());
         employees.iter()
             .for_each(|employee_name| {
