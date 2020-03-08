@@ -98,45 +98,7 @@ pub fn parse(command_string: String) -> Command {
                 },
             },
             "ASSIGN" => parse_assign(tokens),
-            "TRANSFER" => {
-                const TRANSFER_SYNTAX_ERR: &str = "\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to";
-                match tokens.next_back() {
-                    None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
-                    Some(to_department) => match tokens.next_back() {
-                        None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
-                        Some(to_op) => match to_op.to_uppercase().as_str() {
-                            "TO" => match tokens.next_back() {
-                                None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
-                                Some(from_department) => match tokens.next_back() {
-                                    None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
-                                    Some(from_op) => match from_op.to_uppercase().as_str() {
-                                        "FROM" => match tokens.next() {
-                                            None => Command::SyntaxErr(String::from(
-                                                TRANSFER_SYNTAX_ERR,
-                                            )),
-                                            Some(employee_first_name) => {
-                                                let mut employee =
-                                                    String::from(employee_first_name);
-                                                tokens.for_each(|token| {
-                                                    employee.push(' ');
-                                                    employee.push_str(token);
-                                                });
-                                                Command::TransferEmployeeBetweenDepartments(
-                                                    employee,
-                                                    from_department.to_string(),
-                                                    to_department.to_string(),
-                                                )
-                                            }
-                                        },
-                                        _ => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
-                                    },
-                                },
-                            },
-                            _ => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
-                        },
-                    },
-                }
-            }
+            "TRANSFER" => parse_transfer(tokens),
             "PULL" => parse_pull(tokens),
             "FORM" => parse_form(tokens),
             "DISSOLVE" => parse_dissolve(tokens),
@@ -236,6 +198,43 @@ fn parse_pull<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> Comm
                     }
                 },
                 _ => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+            },
+        },
+    }
+}
+
+fn parse_transfer<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> Command {
+    const TRANSFER_SYNTAX_ERR: &str = "\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to";
+    match tokens.next_back() {
+        None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+        Some(to_department) => match tokens.next_back() {
+            None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+            Some(to_op) => match to_op.to_uppercase().as_str() {
+                "TO" => match tokens.next_back() {
+                    None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                    Some(from_department) => match tokens.next_back() {
+                        None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                        Some(from_op) => match from_op.to_uppercase().as_str() {
+                            "FROM" => match tokens.next() {
+                                None => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                                Some(employee_first_name) => {
+                                    let mut employee = String::from(employee_first_name);
+                                    tokens.for_each(|token| {
+                                        employee.push(' ');
+                                        employee.push_str(token);
+                                    });
+                                    Command::TransferEmployeeBetweenDepartments(
+                                        employee,
+                                        from_department.to_string(),
+                                        to_department.to_string(),
+                                    )
+                                }
+                            },
+                            _ => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
+                        },
+                    },
+                },
+                _ => Command::SyntaxErr(String::from(TRANSFER_SYNTAX_ERR)),
             },
         },
     }
@@ -517,6 +516,138 @@ mod tests {
             assert_eq!(
                 Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
                 parse_pull(tokens)
+            );
+        }
+    }
+
+    mod fn_parse_transfer {
+        use super::{parse_transfer, Command};
+
+        #[test]
+        fn employee_name_and_departments_trigger_transfer() {
+            let query_fragment = "Hot Potato from Susie to Micky";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::TransferEmployeeBetweenDepartments(
+                    "Hot Potato".to_string(),
+                    "Susie".to_string(),
+                    "Micky".to_string()
+                ),
+                parse_transfer(tokens)
+            );
+
+            let query_fragment = "Girl from Uptown to Downtown";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::TransferEmployeeBetweenDepartments(
+                    "Girl".to_string(),
+                    "Uptown".to_string(),
+                    "Downtown".to_string()
+                ),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn no_expression_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn no_employee_triggers_syntax_error() {
+            let query_fragment = "from Nothing to Everything";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn no_from_department_triggers_syntax_error() {
+            let query_fragment = "Flare from to Sol";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+
+            let query_fragment = "Bobby McBobberson to Staging";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn no_to_department_triggers_syntax_error() {
+            let query_fragment = "Bones from Grimdiana";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+
+            let query_fragment = "Bobby McBobberson from South to";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn no_from_triggers_syntax_error() {
+            let query_fragment = "Bob Accounting to Editing";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn no_to_triggers_syntax_error() {
+            let query_fragment = "Bob from Accounting Editing";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+        }
+
+        #[test]
+        fn multi_word_department_triggers_syntax_error() {
+            let query_fragment = "Tony from The Darkness to Light";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
+            );
+
+            let query_fragment = "Tony from Dark to The Lightness";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to".to_string()),
+                parse_transfer(tokens)
             );
         }
     }
