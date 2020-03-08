@@ -244,6 +244,31 @@ fn parse_transfer<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> 
 mod tests {
     use super::*;
 
+    mod fn_help {
+        use super::help;
+
+        #[test]
+        fn returns_help_message() {
+            assert_eq!(
+                help(),
+                "\
+                    \nAvailable Operations:\
+                    \n- \"Help\" - display available operations (this help message)\
+                    \n- \"Exit\" - quits the program\
+                    \n- \"Show departments\" - list departments alphabetically\
+                    \n- \"List employees\" - list employees alphabetically\
+                    \n- \"List employees by department\" - list employees and their dept, grouped by dept. alphabetically, sorted alphabetically\
+                    \n- \"List employees in {department}\" - list employees in a dept, sorted alphabetically\
+                    \n- \"Form {department}\" - create new department\
+                    \n- \"Assign {employee} to {department}\" - create new employee under department\
+                    \n- \"Transfer {employee} from {department} to {department}\" - move employee from first department to second\
+                    \n- \"Pull {employee} from {department}\" - remove employee from department\
+                    \n- \"Dissolve {department}\" - remove department and all employees in it\
+                \n"
+            );
+        }
+    }
+
     mod fn_parse {
         use super::{parse, Command};
 
