@@ -37,6 +37,14 @@ pub struct Database {
 }
 
 impl Database {
+    /// Creates a new empty database.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use employees::database::Database;
+    /// let db = Database::new();
+    /// ```
     pub fn new() -> Database {
         Database {
             store: Store::new(),
@@ -324,13 +332,13 @@ mod tests {
     use super::*;
 
     mod database {
-        use super::*;
+        use super::{Database, Store};
 
         mod new {
             use super::{Database, Store};
 
             #[test]
-            fn returns_a_database() {
+            fn new_returns_an_empty_database() {
                 let db = Database::new();
 
                 assert_eq!(
