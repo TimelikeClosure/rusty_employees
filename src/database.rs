@@ -382,5 +382,16 @@ mod tests {
                 );
             }
         }
+
+        mod seed {
+            use super::Database;
+
+            #[test]
+            fn seed_adds_content_to_database() {
+                let mut db = Database::new();
+                db.seed();
+                assert_ne!(0, db.store.departments().list().len());
+            }
+        }
     }
 }
