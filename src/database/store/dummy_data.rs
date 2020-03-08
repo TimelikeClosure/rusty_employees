@@ -114,15 +114,15 @@ pub fn populate(store: &mut Store) {
         store
             .departments_mut()
             .create(&department_name.to_string())
-            .expect(format!("Dummy data failed to populate on forming department \"{}\"", department_name).as_str());
+            .unwrap_or_else(|_| panic!("Dummy data failed to populate on forming department \"{}\"", department_name));
         let department = store
             .department_mut(department_name)
-            .expect(format!("Dummy data failed to retrieve department \"{}\"", department_name).as_str());
+            .unwrap_or_else(|_| panic!("Dummy data failed to retrieve department \"{}\"", department_name));
         employees.iter()
             .for_each(|employee_name| {
                 department
                     .assign(employee_name)
-                    .expect(format!("Dummy data failed to populate on assigning employee \"{}\" to department \"{}\"", employee_name, department_name).as_str());
+                    .unwrap_or_else(|_| panic!("Dummy data failed to populate on assigning employee \"{}\" to department \"{}\"", employee_name, department_name));
             });
     });
 }
