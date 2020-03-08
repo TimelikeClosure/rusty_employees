@@ -2,6 +2,7 @@ use super::super::errors::QueryError;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
+#[derive(Debug, PartialEq)]
 pub struct Employee {
     name: String,
 }
@@ -18,6 +19,7 @@ impl Employee {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Employees {
     index: BTreeMap<String, Employee>,
 }

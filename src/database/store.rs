@@ -4,6 +4,7 @@ mod employees;
 use super::errors::QueryError;
 use departments::{Department, Departments};
 
+#[derive(Debug, PartialEq)]
 pub struct Store {
     index: Departments,
 }

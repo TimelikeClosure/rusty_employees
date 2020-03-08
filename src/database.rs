@@ -31,6 +31,7 @@ pub enum QueryResponse {
 }
 
 /// Departmental employee database with data store and SQL-like query parsing
+#[derive(Debug, PartialEq)]
 pub struct Database {
     store: Store,
 }
@@ -314,6 +315,31 @@ fn format_query_error(error: QueryError) -> QueryResponse {
         QueryError::Conflict(message) => Message(format!("ERROR: Query conflict: {}", message)),
         QueryError::NotFound(message) => {
             Message(format!("ERROR: Query target not found: {}", message))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod database {
+        use super::*;
+
+        mod new {
+            use super::{Database, Store};
+
+            #[test]
+            fn returns_a_database() {
+                let db = Database::new();
+
+                assert_eq!(
+                    Database {
+                        store: Store::new()
+                    },
+                    db
+                );
+            }
         }
     }
 }

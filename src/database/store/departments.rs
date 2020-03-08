@@ -3,6 +3,7 @@ use super::employees::Employees;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 
+#[derive(Debug, PartialEq)]
 pub struct Department {
     name: String,
     employees: Employees,
@@ -33,6 +34,7 @@ impl Department {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Departments {
     index: BTreeMap<String, Department>,
 }
