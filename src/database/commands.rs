@@ -25,58 +25,7 @@ pub fn parse(command_string: String) -> Command {
             "EXIT" | "QUIT" | "LEAVE" | "BYE" => Command::Exit,
             "HELP" | "HALP" => Command::Help,
             "SHOW" => parse_show(tokens),
-            "LIST" => match tokens.next() {
-                None => {
-                    Command::SyntaxErr(String::from("\"List\" command must specify a list name"))
-                }
-                Some(list_name) => match list_name.to_uppercase().as_str() {
-                    "EMPLOYEES" | "EMPLOYEE" => match tokens.next() {
-                        None => Command::ListEmployees,
-                        Some(group_op) => match group_op.to_uppercase().as_str() {
-                            "BY" => match tokens.next() {
-                                None => Command::SyntaxErr(String::from(
-                                    "\"List employees by\" must specify a group by field",
-                                )),
-                                Some(group_list) => match group_list.to_uppercase().as_str() {
-                                    "DEPARTMENT" => match tokens.next() {
-                                        None => Command::ListEmployeesByDepartment,
-                                        Some(extra_token) => Command::SyntaxErr(format!(
-                                            "Unexpected token \"{}\" after group by field \"{}\"",
-                                            extra_token, group_list
-                                        )),
-                                    },
-                                    _ => Command::SyntaxErr(format!(
-                                        "\"{}\" is not a field employees can by grouped by",
-                                        group_list
-                                    )),
-                                },
-                            },
-                            "IN" => match tokens.next() {
-                                None => Command::SyntaxErr(String::from(
-                                    "Command \"List employees in\" must specify a department name",
-                                )),
-                                Some(department_name) => match tokens.next() {
-                                    None => Command::ListEmployeesInDepartment(
-                                        department_name.to_string(),
-                                    ),
-                                    Some(extra_token) => Command::SyntaxErr(format!(
-                                        "Unexpected token \"{}\" after department name \"{}\"",
-                                        extra_token, department_name
-                                    )),
-                                },
-                            },
-                            _ => Command::SyntaxErr(format!(
-                                "Unexpected token \"{}\" after list name \"{}\"",
-                                group_op, list_name,
-                            )),
-                        },
-                    },
-                    _ => Command::SyntaxErr(format!(
-                        "Cannot list \"{}\": list does not exist",
-                        list_name,
-                    )),
-                },
-            },
+            "LIST" => parse_list(tokens),
             "ASSIGN" => parse_assign(tokens),
             "TRANSFER" => parse_transfer(tokens),
             "PULL" => parse_pull(tokens),
@@ -154,6 +103,61 @@ fn parse_form<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
                 "Due to company policy, department names can only be one word long",
             )),
             None => Command::FormDepartment(department.to_string()),
+        },
+    }
+}
+
+fn parse_list<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
+    match tokens.next() {
+        None => {
+            Command::SyntaxErr(String::from("\"List\" command must specify a list name"))
+        }
+        Some(list_name) => match list_name.to_uppercase().as_str() {
+            "EMPLOYEES" | "EMPLOYEE" => match tokens.next() {
+                None => Command::ListEmployees,
+                Some(group_op) => match group_op.to_uppercase().as_str() {
+                    "BY" => match tokens.next() {
+                        None => Command::SyntaxErr(String::from(
+                            "\"List employees by\" must specify a group by field",
+                        )),
+                        Some(group_list) => match group_list.to_uppercase().as_str() {
+                            "DEPARTMENT" => match tokens.next() {
+                                None => Command::ListEmployeesByDepartment,
+                                Some(extra_token) => Command::SyntaxErr(format!(
+                                    "Unexpected token \"{}\" after group by field \"{}\"",
+                                    extra_token, group_list
+                                )),
+                            },
+                            _ => Command::SyntaxErr(format!(
+                                "\"{}\" is not a field employees can by grouped by",
+                                group_list
+                            )),
+                        },
+                    },
+                    "IN" => match tokens.next() {
+                        None => Command::SyntaxErr(String::from(
+                            "Command \"List employees in\" must specify a department name",
+                        )),
+                        Some(department_name) => match tokens.next() {
+                            None => Command::ListEmployeesInDepartment(
+                                department_name.to_string(),
+                            ),
+                            Some(extra_token) => Command::SyntaxErr(format!(
+                                "Unexpected token \"{}\" after department name \"{}\"",
+                                extra_token, department_name
+                            )),
+                        },
+                    },
+                    _ => Command::SyntaxErr(format!(
+                        "Unexpected token \"{}\" after list name \"{}\"",
+                        group_op, list_name,
+                    )),
+                },
+            },
+            _ => Command::SyntaxErr(format!(
+                "Cannot list \"{}\": list does not exist",
+                list_name,
+            )),
         },
     }
 }
@@ -419,6 +423,131 @@ mod tests {
                     "Due to company policy, department names can only be one word long".to_string()
                 ),
                 parse_form(tokens)
+            );
+        }
+    }
+
+    mod fn_parse_list {
+        use super::{Command, parse_list};
+
+        #[test]
+        fn employees_triggers_list_employees() {
+            let query_fragment = "employees";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::ListEmployees,
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_by_dept_triggers_list_employees_by_dept() {
+            let query_fragment = "employees by department";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::ListEmployeesByDepartment,
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_in_dept_triggers_list_employees_in_dept() {
+            let query_fragment = "employees in Logistics";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::ListEmployeesInDepartment("Logistics".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn no_expression_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"List\" command must specify a list name".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn other_list_triggers_syntax_error() {
+            let query_fragment = "Pizzas";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("Cannot list \"Pizzas\": list does not exist".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_with_other_group_op_triggers_syntax_error() {
+            let query_fragment = "Employees of";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("Unexpected token \"of\" after list name \"Employees\"".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_with_no_group_by_list_triggers_syntax_error() {
+            let query_fragment = "Employees by";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"List employees by\" must specify a group by field".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_with_other_group_by_list_triggers_syntax_error() {
+            let query_fragment = "Employees by Performance";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Performance\" is not a field employees can by grouped by".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_with_multi_word_group_by_list_triggers_syntax_error() {
+            let query_fragment = "Employees by Department Manager";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("Unexpected token \"Manager\" after group by field \"Department\"".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_in_dept_no_dept_name_triggers_syntax_error() {
+            let query_fragment = "Employees in";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("Command \"List employees in\" must specify a department name".to_string()),
+                parse_list(tokens)
+            );
+        }
+
+        #[test]
+        fn employees_in_multi_word_dept_triggers_syntax_error() {
+            let query_fragment = "Employees in Gumshoe Detectives";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("Unexpected token \"Detectives\" after department name \"Gumshoe\"".to_string()),
+                parse_list(tokens)
             );
         }
     }
