@@ -97,32 +97,7 @@ pub fn parse(command_string: String) -> Command {
                     )),
                 },
             },
-            "ASSIGN" => {
-                const ASSIGN_SYNTAX_ERR: &str = "\"Assign\" command must specify an employee to assign and a department to assign to";
-                match tokens.next_back() {
-                    None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
-                    Some(department) => match tokens.next_back() {
-                        None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
-                        Some(group_op) => match group_op.to_uppercase().as_str() {
-                            "TO" => match tokens.next() {
-                                None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
-                                Some(employee_first_name) => {
-                                    let mut employee = String::from(employee_first_name);
-                                    tokens.for_each(|token| {
-                                        employee.push(' ');
-                                        employee.push_str(token);
-                                    });
-                                    Command::AssignEmployeeToDepartment(
-                                        employee,
-                                        department.to_string(),
-                                    )
-                                }
-                            },
-                            _ => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
-                        },
-                    },
-                }
-            }
+            "ASSIGN" => parse_assign(tokens),
             "TRANSFER" => {
                 const TRANSFER_SYNTAX_ERR: &str = "\"Transfer\" command must specify an employee, a department to transfer from, and a department to transfer to";
                 match tokens.next_back() {
@@ -188,6 +163,31 @@ pub fn help() -> String {
     String::from(HELP_MESSAGE)
 }
 
+fn parse_assign<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> Command {
+    const ASSIGN_SYNTAX_ERR: &str =
+        "\"Assign\" command must specify an employee to assign and a department to assign to";
+    match tokens.next_back() {
+        None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+        Some(department) => match tokens.next_back() {
+            None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+            Some(group_op) => match group_op.to_uppercase().as_str() {
+                "TO" => match tokens.next() {
+                    None => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+                    Some(employee_first_name) => {
+                        let mut employee = String::from(employee_first_name);
+                        tokens.for_each(|token| {
+                            employee.push(' ');
+                            employee.push_str(token);
+                        });
+                        Command::AssignEmployeeToDepartment(employee, department.to_string())
+                    }
+                },
+                _ => Command::SyntaxErr(String::from(ASSIGN_SYNTAX_ERR)),
+            },
+        },
+    }
+}
+
 fn parse_dissolve<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
     match tokens.next() {
         None => Command::SyntaxErr(String::from(
@@ -244,6 +244,103 @@ fn parse_pull<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> Comm
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod fn_parse_assign {
+        use super::{parse_assign, Command};
+
+        #[test]
+        fn employee_name_and_department_triggers_assign() {
+            let query_fragment = "Flying Tomato to Comedian";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::AssignEmployeeToDepartment(
+                    "Flying Tomato".to_string(),
+                    "Comedian".to_string()
+                ),
+                parse_assign(tokens)
+            );
+
+            let query_fragment = "Steve to Patrol";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::AssignEmployeeToDepartment("Steve".to_string(), "Patrol".to_string()),
+                parse_assign(tokens)
+            );
+        }
+
+        #[test]
+        fn no_expression_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+        }
+
+        #[test]
+        fn no_employee_triggers_syntax_error() {
+            let query_fragment = "to Nowhere";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+        }
+
+        #[test]
+        fn no_department_triggers_syntax_error() {
+            let query_fragment = "Knight to";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+
+            let query_fragment = "Bobby McBobberson to";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+        }
+
+        #[test]
+        fn no_from_triggers_syntax_error() {
+            let query_fragment = "Bob Accounting";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+
+            let query_fragment = "Eldritch Horrors Closet";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+        }
+
+        #[test]
+        fn multi_word_department_triggers_syntax_error() {
+            let query_fragment = "Magic Missle to The Darkness";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Assign\" command must specify an employee to assign and a department to assign to".to_string()),
+                parse_assign(tokens)
+            );
+        }
+    }
 
     mod fn_parse_dissolve {
         use super::{parse_dissolve, Command};
