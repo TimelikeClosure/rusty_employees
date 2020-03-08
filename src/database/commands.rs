@@ -188,17 +188,7 @@ pub fn parse(command_string: String) -> Command {
                     },
                 }
             }
-            "FORM" => match tokens.next() {
-                None => Command::SyntaxErr(String::from(
-                    "\"Form\" command must specify a department to form",
-                )),
-                Some(department) => match tokens.next() {
-                    Some(_) => Command::SyntaxErr(String::from(
-                        "Due to company policy, department names can only be one word long",
-                    )),
-                    None => Command::FormDepartment(department.to_string()),
-                },
-            },
+            "FORM" => parse_form(tokens),
             "DISSOLVE" => parse_dissolve(tokens),
             _ => Command::InvalidCommandErr(String::from(command_string)),
         },
@@ -233,6 +223,20 @@ fn parse_dissolve<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
                 "Due to company policy, department names can only be one word long",
             )),
             None => Command::DissolveDepartment(department.to_string()),
+        },
+    }
+}
+
+fn parse_form<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
+    match tokens.next() {
+        None => Command::SyntaxErr(String::from(
+            "\"Form\" command must specify a department to form",
+        )),
+        Some(department) => match tokens.next() {
+            Some(_) => Command::SyntaxErr(String::from(
+                "Due to company policy, department names can only be one word long",
+            )),
+            None => Command::FormDepartment(department.to_string()),
         },
     }
 }
@@ -278,6 +282,47 @@ mod tests {
                     "Due to company policy, department names can only be one word long".to_string()
                 ),
                 parse_dissolve(tokens)
+            );
+        }
+    }
+
+    mod fn_parse_form {
+        use super::{parse_form, Command};
+
+        #[test]
+        fn department_name_triggers_form() {
+            let query_fragment = "Bootlegging";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::FormDepartment("Bootlegging".to_string()),
+                parse_form(tokens)
+            );
+        }
+
+        #[test]
+        fn empty_name_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr(
+                    "\"Form\" command must specify a department to form".to_string()
+                ),
+                parse_form(tokens)
+            );
+        }
+
+        #[test]
+        fn multi_word_department_triggers_syntax_error() {
+            let query_fragment = "Cheese Wheeling";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr(
+                    "Due to company policy, department names can only be one word long".to_string()
+                ),
+                parse_form(tokens)
             );
         }
     }
