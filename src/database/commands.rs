@@ -245,17 +245,30 @@ mod tests {
     use super::*;
 
     mod fn_parse {
+        use super::{Command, parse};
+
         // None
+        fn empty_query() {}
         // EXIT
+        fn exit() {}
         // HELP
+        fn help() {}
         // SHOW
+        fn show() {}
         // LIST
+        fn list() {}
         // ASSIGN
+        fn assign() {}
         // TRANSFER
+        fn transfer() {}
         // PULL
+        fn pull() {}
         // FORM
+        fn form() {}
         // DISSOLVE
+        fn dissolve() {}
         // DANCE
+        fn other_query() {}
     }
 
     mod fn_parse_assign {
