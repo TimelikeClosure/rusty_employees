@@ -4,13 +4,13 @@ mod employees;
 use super::errors::QueryError;
 use departments::{Department, Departments};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Store {
     index: Departments,
 }
 
 impl Store {
-    pub fn new() -> Store {
+    pub fn new() -> Self {
         Store {
             index: Departments::new(),
         }

@@ -8,7 +8,7 @@ pub struct Employee {
 }
 
 impl Employee {
-    pub fn new(name: &str) -> Employee {
+    pub fn new(name: &str) -> Self {
         Employee {
             name: to_name(name),
         }
@@ -25,7 +25,7 @@ pub struct Employees {
 }
 
 impl Employees {
-    pub fn new() -> Employees {
+    pub fn new() -> Self {
         Employees {
             index: BTreeMap::new(),
         }

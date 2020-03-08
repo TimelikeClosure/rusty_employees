@@ -10,7 +10,7 @@ pub struct Department {
 }
 
 impl Department {
-    pub fn new(name: &str) -> Department {
+    pub fn new(name: &str) -> Self {
         Department {
             name: to_name(name),
             employees: Employees::new(),
@@ -34,13 +34,13 @@ impl Department {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Departments {
     index: BTreeMap<String, Department>,
 }
 
 impl Departments {
-    pub fn new() -> Departments {
+    pub fn new() -> Self {
         Departments {
             index: BTreeMap::new(),
         }

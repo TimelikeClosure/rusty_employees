@@ -31,7 +31,7 @@ pub enum QueryResponse {
 }
 
 /// Departmental employee database with data store and SQL-like query parsing
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Database {
     store: Store,
 }
@@ -50,7 +50,7 @@ impl Database {
     ///
     /// let mut db = Database::new();
     /// ```
-    pub fn new() -> Database {
+    pub fn new() -> Self {
         Database {
             store: Store::new(),
         }
