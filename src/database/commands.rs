@@ -24,27 +24,7 @@ pub fn parse(command_string: String) -> Command {
         Some(command_string) => match command_string.to_uppercase().as_str() {
             "EXIT" | "QUIT" | "LEAVE" | "BYE" => Command::Exit,
             "HELP" | "HALP" => Command::Help,
-            "SHOW" => {
-                let table = tokens.next();
-                match table {
-                    None => Command::SyntaxErr(String::from(
-                        "\"Show\" command must specify a list name",
-                    )),
-                    Some(list_name) => match list_name.to_uppercase().as_str() {
-                        "DEPARTMENTS" | "DEPT" | "DEPARTMENT" | "DEPTS" => match tokens.next() {
-                            None => Command::ShowDepartments,
-                            Some(extra_token) => Command::SyntaxErr(format!(
-                                "Unexpected token \"{}\" after list name \"{}\"",
-                                extra_token, list_name
-                            )),
-                        },
-                        _ => Command::SyntaxErr(format!(
-                            "Cannot show \"{}\": list does not exist",
-                            list_name
-                        )),
-                    },
-                }
-            }
+            "SHOW" => parse_show(tokens),
             "LIST" => match tokens.next() {
                 None => {
                     Command::SyntaxErr(String::from("\"List\" command must specify a list name"))
@@ -199,6 +179,26 @@ fn parse_pull<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> Comm
                 },
                 _ => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
             },
+        },
+    }
+}
+
+fn parse_show<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
+    let table = tokens.next();
+    match table {
+        None => Command::SyntaxErr(String::from("\"Show\" command must specify a list name")),
+        Some(list_name) => match list_name.to_uppercase().as_str() {
+            "DEPARTMENTS" | "DEPT" | "DEPARTMENT" | "DEPTS" => match tokens.next() {
+                None => Command::ShowDepartments,
+                Some(extra_token) => Command::SyntaxErr(format!(
+                    "Unexpected token \"{}\" after list name \"{}\"",
+                    extra_token, list_name
+                )),
+            },
+            _ => Command::SyntaxErr(format!(
+                "Cannot show \"{}\": list does not exist",
+                list_name
+            )),
         },
     }
 }
@@ -516,6 +516,53 @@ mod tests {
             assert_eq!(
                 Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
                 parse_pull(tokens)
+            );
+        }
+    }
+
+    mod fn_parse_show {
+        use super::{parse_show, Command};
+
+        #[test]
+        fn departments_triggers_show() {
+            let query_fragment = "departments";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(Command::ShowDepartments, parse_show(tokens));
+        }
+
+        #[test]
+        fn no_expression_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Show\" command must specify a list name".to_string()),
+                parse_show(tokens)
+            );
+        }
+
+        #[test]
+        fn other_list_triggers_syntax_error() {
+            let query_fragment = "bunnies";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("Cannot show \"bunnies\": list does not exist".to_string()),
+                parse_show(tokens)
+            );
+        }
+
+        #[test]
+        fn multi_word_list_triggers_syntax_error() {
+            let query_fragment = "departments flotsam";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr(
+                    "Unexpected token \"flotsam\" after list name \"departments\"".to_string()
+                ),
+                parse_show(tokens)
             );
         }
     }
