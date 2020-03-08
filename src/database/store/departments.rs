@@ -10,14 +10,14 @@ pub struct Department {
 }
 
 impl Department {
-    pub fn new(name: &String) -> Department {
+    pub fn new(name: &str) -> Department {
         Department {
             name: to_name(name),
             employees: Employees::new(),
         }
     }
 
-    pub fn name(&self) -> &String {
+    pub fn name(&self) -> &str {
         &self.name
     }
 
@@ -73,7 +73,7 @@ impl Departments {
             .collect::<Vec<String>>()
     }
 
-    pub fn create(&mut self, department: &String) -> Result<String, QueryError> {
+    pub fn create(&mut self, department: &str) -> Result<String, QueryError> {
         match self.index.entry(to_key(department)) {
             Entry::Vacant(entry) => {
                 entry.insert(Department::new(department));
@@ -86,7 +86,7 @@ impl Departments {
         }
     }
 
-    pub fn delete(&mut self, department: &String) -> Result<(), QueryError> {
+    pub fn delete(&mut self, department: &str) -> Result<(), QueryError> {
         match self.index.remove(&to_key(department)) {
             None => Err(QueryError::NotFound(format!(
                 "Department \"{}\" not found",
