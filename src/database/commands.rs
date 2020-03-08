@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 pub enum Command {
     EmptyCommand,
     InvalidCommandErr(String),
@@ -198,17 +199,7 @@ pub fn parse(command_string: String) -> Command {
                     None => Command::FormDepartment(department.to_string()),
                 },
             },
-            "DISSOLVE" => match tokens.next() {
-                None => Command::SyntaxErr(String::from(
-                    "\"Dissolve\" command must specify a department to dissolve",
-                )),
-                Some(department) => match tokens.next() {
-                    Some(_) => Command::SyntaxErr(String::from(
-                        "Due to company policy, department names can only be one word long",
-                    )),
-                    None => Command::DissolveDepartment(department.to_string()),
-                },
-            },
+            "DISSOLVE" => parse_dissolve(tokens),
             _ => Command::InvalidCommandErr(String::from(command_string)),
         },
     }
@@ -230,4 +221,64 @@ pub fn help() -> String {
         \n- \"Dissolve {department}\" - remove department and all employees in it\
     \n");
     String::from(HELP_MESSAGE)
+}
+
+fn parse_dissolve<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
+    match tokens.next() {
+        None => Command::SyntaxErr(String::from(
+            "\"Dissolve\" command must specify a department to dissolve",
+        )),
+        Some(department) => match tokens.next() {
+            Some(_) => Command::SyntaxErr(String::from(
+                "Due to company policy, department names can only be one word long",
+            )),
+            None => Command::DissolveDepartment(department.to_string()),
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod fn_parse_dissolve {
+        use super::{parse_dissolve, Command};
+
+        #[test]
+        fn department_name_triggers_dissolve() {
+            let query_fragment = "Research";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::DissolveDepartment("Research".to_string()),
+                parse_dissolve(tokens)
+            );
+        }
+
+        #[test]
+        fn empty_name_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr(
+                    "\"Dissolve\" command must specify a department to dissolve".to_string()
+                ),
+                parse_dissolve(tokens)
+            );
+        }
+
+        #[test]
+        fn multi_word_department_triggers_syntax_error() {
+            let query_fragment = "Flight Testing";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr(
+                    "Due to company policy, department names can only be one word long".to_string()
+                ),
+                parse_dissolve(tokens)
+            );
+        }
+    }
 }
