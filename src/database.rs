@@ -76,12 +76,14 @@ impl Database {
     ///
     /// # Examples
     ///
+    /// To create a seeded database, create a new mutable database, then call the `.seed()` method on it:
     /// ```rust
     /// use employees::database::Database;
     ///
     /// let mut db = Database::new();
     /// db.seed();
     /// ```
+    /// It is recommended to do this before any other data is inserted to avoid conflicts.
     pub fn seed(&mut self) {
         self.store.seed()
     }
