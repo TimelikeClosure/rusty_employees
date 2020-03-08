@@ -245,30 +245,93 @@ mod tests {
     use super::*;
 
     mod fn_parse {
-        use super::{Command, parse};
+        use super::{parse, Command};
 
-        // None
-        fn empty_query() {}
-        // EXIT
-        fn exit() {}
-        // HELP
-        fn help() {}
-        // SHOW
-        fn show() {}
-        // LIST
-        fn list() {}
-        // ASSIGN
-        fn assign() {}
-        // TRANSFER
-        fn transfer() {}
-        // PULL
-        fn pull() {}
-        // FORM
-        fn form() {}
-        // DISSOLVE
-        fn dissolve() {}
-        // DANCE
-        fn other_query() {}
+        #[test]
+        fn empty_query() {
+            assert_eq!(Command::EmptyCommand, parse("".to_string()));
+        }
+
+        #[test]
+        fn exit() {
+            assert_eq!(Command::Exit, parse("exit".to_string()));
+        }
+
+        #[test]
+        fn help() {
+            assert_eq!(Command::Help, parse("help".to_string()));
+        }
+
+        #[test]
+        fn show() {
+            assert_eq!(
+                Command::ShowDepartments,
+                parse("show departments".to_string())
+            );
+        }
+
+        #[test]
+        fn list() {
+            assert_eq!(Command::ListEmployees, parse("list employees".to_string()));
+        }
+
+        #[test]
+        fn assign() {
+            assert_eq!(
+                Command::AssignEmployeeToDepartment(
+                    "Tidley Widley".to_string(),
+                    "Benches".to_string()
+                ),
+                parse("assign Tidley Widley to Benches".to_string())
+            );
+        }
+
+        #[test]
+        fn transfer() {
+            assert_eq!(
+                Command::TransferEmployeeBetweenDepartments(
+                    "eyes".to_string(),
+                    "left".to_string(),
+                    "right".to_string()
+                ),
+                parse("transfer eyes from left to right".to_string())
+            );
+        }
+
+        #[test]
+        fn pull() {
+            assert_eq!(
+                Command::PullEmployeeFromDepartment(
+                    "a trampoline".to_string(),
+                    "stock".to_string()
+                ),
+                parse("pull a trampoline from stock".to_string())
+            );
+        }
+
+        #[test]
+        fn form() {
+            assert_eq!(
+                Command::FormDepartment("sentences".to_string()),
+                parse("form sentences".to_string())
+            );
+        }
+
+        #[test]
+        fn dissolve() {
+            assert_eq!(
+                Command::DissolveDepartment("sugah".to_string()),
+                parse("dissolve sugah".to_string())
+            );
+        }
+
+        #[test]
+        fn other_query() {
+            assert_eq!(
+                Command::InvalidCommandErr("dance".to_string()),
+                parse("dance".to_string())
+            );
+        }
     }
 
     mod fn_parse_assign {
