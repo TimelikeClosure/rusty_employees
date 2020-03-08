@@ -98,7 +98,7 @@ impl Departments {
 }
 
 fn to_key(value: &str) -> String {
-    value.to_uppercase().to_string()
+    value.to_uppercase()
 }
 
 fn to_name(value: &str) -> String {

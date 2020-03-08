@@ -113,7 +113,7 @@ pub fn populate(store: &mut Store) {
     .for_each(|(department_name, employees)| {
         store
             .departments_mut()
-            .create(&department_name.to_string())
+            .create(&(*department_name).to_string())
             .unwrap_or_else(|_| panic!("Dummy data failed to populate on forming department \"{}\"", department_name));
         let department = store
             .department_mut(department_name)

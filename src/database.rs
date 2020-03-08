@@ -214,7 +214,7 @@ impl Database {
                 employees.push(employee_name.to_owned());
             }
         }
-        employees.sort_by_key(|name| name.to_uppercase().to_owned());
+        employees.sort_by_key(|name| name.to_uppercase());
         let employees = employees;
         const COLUMN_NAME: &str = "Employee";
         QueryResponse::Table(Table {
