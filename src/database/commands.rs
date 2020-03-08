@@ -162,32 +162,7 @@ pub fn parse(command_string: String) -> Command {
                     },
                 }
             }
-            "PULL" => {
-                const PULL_SYNTAX_ERR: &str = "\"Pull\" command must specify an employee to pull and a department to pull from";
-                match tokens.next_back() {
-                    None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
-                    Some(department) => match tokens.next_back() {
-                        None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
-                        Some(group_op) => match group_op.to_uppercase().as_str() {
-                            "FROM" => match tokens.next() {
-                                None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
-                                Some(employee_first_name) => {
-                                    let mut employee = String::from(employee_first_name);
-                                    tokens.for_each(|token| {
-                                        employee.push(' ');
-                                        employee.push_str(token);
-                                    });
-                                    Command::PullEmployeeFromDepartment(
-                                        employee,
-                                        department.to_string(),
-                                    )
-                                }
-                            },
-                            _ => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
-                        },
-                    },
-                }
-            }
+            "PULL" => parse_pull(tokens),
             "FORM" => parse_form(tokens),
             "DISSOLVE" => parse_dissolve(tokens),
             _ => Command::InvalidCommandErr(String::from(command_string)),
@@ -237,6 +212,31 @@ fn parse_form<'a, T: Iterator<Item = &'a str>>(mut tokens: T) -> Command {
                 "Due to company policy, department names can only be one word long",
             )),
             None => Command::FormDepartment(department.to_string()),
+        },
+    }
+}
+
+fn parse_pull<'a, T: DoubleEndedIterator<Item = &'a str>>(mut tokens: T) -> Command {
+    const PULL_SYNTAX_ERR: &str =
+        "\"Pull\" command must specify an employee to pull and a department to pull from";
+    match tokens.next_back() {
+        None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+        Some(department) => match tokens.next_back() {
+            None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+            Some(group_op) => match group_op.to_uppercase().as_str() {
+                "FROM" => match tokens.next() {
+                    None => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+                    Some(employee_first_name) => {
+                        let mut employee = String::from(employee_first_name);
+                        tokens.for_each(|token| {
+                            employee.push(' ');
+                            employee.push_str(token);
+                        });
+                        Command::PullEmployeeFromDepartment(employee, department.to_string())
+                    }
+                },
+                _ => Command::SyntaxErr(String::from(PULL_SYNTAX_ERR)),
+            },
         },
     }
 }
@@ -323,6 +323,103 @@ mod tests {
                     "Due to company policy, department names can only be one word long".to_string()
                 ),
                 parse_form(tokens)
+            );
+        }
+    }
+
+    mod fn_parse_pull {
+        use super::{parse_pull, Command};
+
+        #[test]
+        fn employee_name_and_department_triggers_pull() {
+            let query_fragment = "Ripe Potato from Archives";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::PullEmployeeFromDepartment(
+                    "Ripe Potato".to_string(),
+                    "Archives".to_string()
+                ),
+                parse_pull(tokens)
+            );
+
+            let query_fragment = "Steve from Patrol";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::PullEmployeeFromDepartment("Steve".to_string(), "Patrol".to_string()),
+                parse_pull(tokens)
+            );
+        }
+
+        #[test]
+        fn no_expression_triggers_syntax_error() {
+            let query_fragment = "";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
+            );
+        }
+
+        #[test]
+        fn no_employee_triggers_syntax_error() {
+            let query_fragment = "from Nothing";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
+            );
+        }
+
+        #[test]
+        fn no_department_triggers_syntax_error() {
+            let query_fragment = "Jones from";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
+            );
+
+            let query_fragment = "Bobby McBobberson from";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
+            );
+        }
+
+        #[test]
+        fn no_from_triggers_syntax_error() {
+            let query_fragment = "Bob Accounting";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
+            );
+
+            let query_fragment = "Eldritch Horrors Closet";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
+            );
+        }
+
+        #[test]
+        fn multi_word_department_triggers_syntax_error() {
+            let query_fragment = "Tony from The Darkness";
+            let tokens = query_fragment.split_whitespace();
+
+            assert_eq!(
+                Command::SyntaxErr("\"Pull\" command must specify an employee to pull and a department to pull from".to_string()),
+                parse_pull(tokens)
             );
         }
     }
