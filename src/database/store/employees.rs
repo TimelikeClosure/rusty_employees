@@ -109,16 +109,22 @@ mod tests {
         use super::to_key;
 
         #[test]
-        fn returns_all_caps() {
-            assert_eq!(
-                "ANGRY BOB".to_string(),
-                to_key("Angry Bob")
-            );
+        fn capitalizes_all_letters() {
+            assert_eq!("ANGRY BOB".to_string(), to_key("Angry Bob"));
+        }
+    }
+
+    mod fn_to_name {
+        use super::to_name;
+
+        #[test]
+        fn capitalizes_each_word() {
+            assert_eq!("Greek Salad".to_string(), to_name("gReEk SaLaD"));
         }
     }
 
     mod employee {
-        use super::{Employee, to_name};
+        use super::{to_name, Employee};
 
         #[test]
         fn new_returns_struct() {
@@ -134,10 +140,7 @@ mod tests {
         fn name_returns_name() {
             let employee = Employee::new("Joe Mombo");
 
-            assert_eq!(
-                to_name("Joe Mombo"),
-                employee.name()
-            );
+            assert_eq!(to_name("Joe Mombo"), employee.name());
         }
     }
 }
