@@ -162,7 +162,26 @@ mod tests {
             }
         }
 
-        mod list {}
+        mod list {
+            use super::Employees;
+
+            #[test]
+            fn gets_employee_names() {
+                let mut employees = Employees::new();
+                employees.create("Sally Simmerman").unwrap();
+                employees.create("Jose Schwartz").unwrap();
+                employees.create("Yun Balloon").unwrap();
+
+                assert_eq!(
+                    vec![
+                        "Jose Schwartz",
+                        "Sally Simmerman",
+                        "Yun Balloon"
+                    ],
+                    employees.list()
+                );
+            }
+        }
 
         mod create {}
 
