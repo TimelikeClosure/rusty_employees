@@ -105,8 +105,8 @@ impl Database {
     ///
     /// let mut db = Database::new();
     /// assert_eq!(
-    ///     db.query("Exit".to_string()),
-    ///     QueryResponse::Exit
+    ///   db.query("Exit".to_string()),
+    ///   QueryResponse::Exit
     /// );
     /// ```
     /// This can be used to signal any outside code to break out of a REPL, or something similar.
@@ -129,19 +129,23 @@ impl Database {
     ///
     /// let mut db = Database::new();
     /// assert_eq!(
-    ///     db.query("   ".to_string()),
-    ///     QueryResponse::NoOp
+    ///   db.query("   ".to_string()),
+    ///   QueryResponse::NoOp
     /// );
     /// ```
     ///
-    /// If a query begins with an invalid keyword, `.query()` will respond with an invalid command message:
+    /// If a query begins with an invalid command keyword, `.query()` will respond with an invalid command message:
     /// ```rust
     /// use employees::database::{Database, QueryResponse};
     ///
     /// let mut db = Database::new();
     /// assert_eq!(
-    ///     db.query("get waffles".to_string()),
-    ///     QueryResponse::Message("ERROR: Invalid command \"get\". Please check your spelling, or type \"Help\" for the list of available commands".to_string())
+    ///   db.query("get waffles".to_string()),
+    ///   QueryResponse::Message(
+    ///     "ERROR: Invalid command \"get\". Please check your spelling, \
+    ///      or type \"Help\" for the list of available commands"
+    ///     .to_string()
+    ///   )
     /// );
     /// ```
     ///
@@ -151,8 +155,11 @@ impl Database {
     ///
     /// let mut db = Database::new();
     /// assert_eq!(
-    ///     db.query("list waffles".to_string()),
-    ///     QueryResponse::Message("ERROR: Invalid command syntax: Cannot list \"waffles\": list does not exist".to_string())
+    ///   db.query("list waffles".to_string()),
+    ///   QueryResponse::Message(
+    ///     "ERROR: Invalid command syntax: Cannot list \"waffles\": list does not exist"
+    ///     .to_string()
+    ///   )
     /// );
     /// ```
     ///
