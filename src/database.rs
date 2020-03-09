@@ -9,6 +9,7 @@ mod store;
 use store::Store;
 
 /// Unformatted tabular data.
+#[derive(Debug, PartialEq)]
 pub struct Table {
     /// Data set name.
     pub title: String,
@@ -19,6 +20,7 @@ pub struct Table {
 }
 
 /// Standardized query result output formats
+#[derive(Debug, PartialEq)]
 pub enum QueryResponse {
     /// Stop listening for queries
     Exit,
@@ -89,6 +91,83 @@ impl Database {
         self.store.seed()
     }
 
+    /// Perform a query on the database
+    ///
+    /// # Examples
+    ///
+    /// ## Commands
+    ///
+    /// Some queries are used for higher-level operations and don't touch any stored data.
+    ///
+    /// ### Exit
+    ///
+    /// The `"exit"` query can be used to trigger an `Exit` response:
+    /// ```rust
+    /// use employees::database::{Database, QueryResponse};
+    ///
+    /// let mut db = Database::new();
+    /// assert_eq!(
+    ///     db.query("Exit".to_string()),
+    ///     QueryResponse::Exit
+    /// );
+    /// ```
+    /// This can be used to signal any outside code to break out of a REPL, or something similar.
+    ///
+    /// ### Help
+    ///
+    /// The `"help"` query can be used to get a list of available queries.
+    /// ```rust
+    /// use employees::database::{Database, QueryResponse};
+    ///
+    /// let mut db = Database::new();
+    /// db.query("Help".to_string());
+    /// ```
+    ///
+    /// ## Query Errors
+    ///
+    /// Invalid queries will trigger different responses, depending on why they're considered invalid.
+    ///
+    /// ### No Query
+    ///
+    /// If a query contains nothing but whitespace, `.query()` will respond with a `NoOp`:
+    /// ```rust
+    /// use employees::database::{Database, QueryResponse};
+    ///
+    /// let mut db = Database::new();
+    /// assert_eq!(
+    ///     db.query("   ".to_string()),
+    ///     QueryResponse::NoOp
+    /// );
+    /// ```
+    ///
+    /// ### Invalid Query
+    ///
+    /// If a query begins with an invalid keyword, `.query()` will respond with an invalid command message:
+    /// ```rust
+    /// use employees::database::{Database, QueryResponse};
+    ///
+    /// let mut db = Database::new();
+    /// assert_eq!(
+    ///     db.query("get waffles".to_string()),
+    ///     QueryResponse::Message("ERROR: Invalid command \"get\". Please check your spelling, or type \"Help\" for the list of available commands".to_string())
+    /// );
+    /// ```
+    ///
+    /// Otherwise, if the query syntax is invalid in some other way, `.query()` will respond with a command-specific message:
+    /// ```rust
+    /// use employees::database::{Database, QueryResponse};
+    ///
+    /// let mut db = Database::new();
+    /// assert_eq!(
+    ///     db.query("list waffles".to_string()),
+    ///     QueryResponse::Message("ERROR: Invalid command syntax: Cannot list \"waffles\": list does not exist".to_string())
+    /// );
+    /// ```
+    ///
+    /// ## Departments
+    ///
+    /// ## Employees
+    ///
     pub fn query(&mut self, query_string: String) -> QueryResponse {
         // Steps to completed execution
         // 1. Tokenize & parse query string into command (or return err on missing command / invalid command syntax)
