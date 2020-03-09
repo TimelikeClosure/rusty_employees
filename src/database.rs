@@ -95,11 +95,9 @@ impl Database {
     ///
     /// # Examples
     ///
-    /// ## Commands
+    /// ## Helper Commands
     ///
-    /// Some queries are used for higher-level operations and don't touch any stored data.
-    ///
-    /// ### Exit
+    /// Some queries are used for helper level operations and don't touch any stored data.
     ///
     /// The `"exit"` query can be used to trigger an `Exit` response:
     /// ```rust
@@ -113,8 +111,6 @@ impl Database {
     /// ```
     /// This can be used to signal any outside code to break out of a REPL, or something similar.
     ///
-    /// ### Help
-    ///
     /// The `"help"` query can be used to get a list of available queries.
     /// ```rust
     /// use employees::database::{Database, QueryResponse};
@@ -127,8 +123,6 @@ impl Database {
     ///
     /// Invalid queries will trigger different responses, depending on why they're considered invalid.
     ///
-    /// ### No Query
-    ///
     /// If a query contains nothing but whitespace, `.query()` will respond with a `NoOp`:
     /// ```rust
     /// use employees::database::{Database, QueryResponse};
@@ -139,8 +133,6 @@ impl Database {
     ///     QueryResponse::NoOp
     /// );
     /// ```
-    ///
-    /// ### Invalid Query
     ///
     /// If a query begins with an invalid keyword, `.query()` will respond with an invalid command message:
     /// ```rust
