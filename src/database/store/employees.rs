@@ -173,17 +173,36 @@ mod tests {
                 employees.create("Yun Balloon").unwrap();
 
                 assert_eq!(
-                    vec![
-                        "Jose Schwartz",
-                        "Sally Simmerman",
-                        "Yun Balloon"
-                    ],
+                    vec!["Jose Schwartz", "Sally Simmerman", "Yun Balloon"],
                     employees.list()
                 );
             }
         }
 
-        mod create {}
+        mod create {
+            use super::Employees;
+
+            #[test]
+            fn adds_employee() {
+                let mut employees = Employees::new();
+
+                employees.create("Cheese Wheelin").unwrap();
+                assert_eq!(vec!["Cheese Wheelin"], employees.list());
+
+                employees.create("Gouda Pest").unwrap();
+                assert_eq!(vec!["Cheese Wheelin", "Gouda Pest"], employees.list());
+            }
+
+            #[test]
+            fn fails_on_duplicate_key() {
+                let mut employees = Employees::new();
+                employees.create("John Doe").unwrap();
+                assert_eq!(vec!["John Doe"], employees.list());
+
+                employees.create("John Doe").unwrap_err();
+                assert_eq!(vec!["John Doe"], employees.list());
+            }
+        }
 
         mod delete {}
     }
