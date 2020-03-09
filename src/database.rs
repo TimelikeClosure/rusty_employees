@@ -31,7 +31,8 @@ pub enum QueryResponse {
 }
 
 /// Departmental employee database with data store and SQL-like query parsing
-#[derive(Debug, Default, PartialEq)]
+#[derive(Default)]
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Database {
     store: Store,
 }
