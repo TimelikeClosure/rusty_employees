@@ -105,6 +105,18 @@ fn to_name(value: &str) -> String {
 mod tests {
     use super::*;
 
+    mod fn_to_key {
+        use super::to_key;
+
+        #[test]
+        fn returns_all_caps() {
+            assert_eq!(
+                "ANGRY BOB".to_string(),
+                to_key("Angry Bob")
+            );
+        }
+    }
+
     mod employee {
         use super::{Employee, to_name};
 
