@@ -64,7 +64,7 @@ impl Employees {
     pub fn delete(&mut self, employee: &str) -> Result<(), QueryError> {
         match self.index.remove(&to_key(employee)) {
             None => Err(QueryError::NotFound(format!(
-                "Employee \"{}\" not found",
+                "Employee \"{}\" could not be found",
                 employee
             ))),
             Some(_) => Ok(()),
@@ -204,6 +204,42 @@ mod tests {
             }
         }
 
-        mod delete {}
+        mod delete {
+            use super::{Employees, QueryError};
+
+            #[test]
+            fn removes_employee() {
+                let mut employees = Employees::new();
+
+                employees.create("Draco Froot").unwrap();
+                employees.create("Gray P Froot").unwrap();
+                employees.create("Tan Gerine").unwrap();
+                assert_eq!(
+                    vec!["Draco Froot", "Gray P Froot", "Tan Gerine"],
+                    employees.list()
+                );
+
+                employees.delete("Gray P Froot").unwrap();
+                assert_eq!(vec!["Draco Froot", "Tan Gerine"], employees.list());
+
+                employees.delete("Draco Froot").unwrap();
+                assert_eq!(vec!["Tan Gerine"], employees.list());
+
+                employees.delete("Tan Gerine").unwrap();
+                assert_eq!(Vec::<&str>::new(), employees.list());
+            }
+
+            #[test]
+            fn fails_on_missing_employee() {
+                let mut employees = Employees::new();
+
+                assert_eq!(
+                    QueryError::NotFound(
+                        "Employee \"The Ghost Of Christmas Past\" could not be found".to_string()
+                    ),
+                    employees.delete("The Ghost Of Christmas Past").unwrap_err()
+                );
+            }
+        }
     }
 }
