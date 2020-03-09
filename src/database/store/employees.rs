@@ -127,20 +127,45 @@ mod tests {
         use super::{to_name, Employee};
 
         #[test]
-        fn new_returns_struct() {
-            assert_eq!(
-                Employee {
-                    name: to_name("Steve")
-                },
-                Employee::new("Steve")
-            );
-        }
-
-        #[test]
         fn name_returns_name() {
             let employee = Employee::new("Joe Mombo");
 
             assert_eq!(to_name("Joe Mombo"), employee.name());
         }
+    }
+
+    mod employees {
+        use super::*;
+
+        mod employee {
+            use super::{Employee, Employees, QueryError};
+
+            #[test]
+            fn employee_exists() {
+                let mut employees = Employees::new();
+                employees.create("James McGregor").unwrap();
+
+                assert_eq!(
+                    Ok(&(Employee::new("James McGregor"))),
+                    employees.employee("James McGregor")
+                );
+            }
+
+            #[test]
+            fn employee_doesnt_exist() {
+                assert_eq!(
+                    Err(QueryError::NotFound(
+                        "Employee \"Slenderman\" does not exist".to_string()
+                    )),
+                    Employees::new().employee("Slenderman")
+                );
+            }
+        }
+
+        mod list {}
+
+        mod create {}
+
+        mod delete {}
     }
 }
