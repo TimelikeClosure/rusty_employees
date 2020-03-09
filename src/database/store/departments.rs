@@ -87,13 +87,13 @@ impl Departments {
         }
     }
 
-    pub fn delete(&mut self, department: &str) -> Result<(), QueryError> {
+    pub fn delete(&mut self, department: &str) -> Result<String, QueryError> {
         match self.index.remove(&to_key(department)) {
             None => Err(QueryError::NotFound(format!(
                 "Department \"{}\" not found",
                 department
             ))),
-            Some(_) => Ok(()),
+            Some(_) => Ok(to_name(department)),
         }
     }
 }

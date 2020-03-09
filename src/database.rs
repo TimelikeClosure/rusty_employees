@@ -165,6 +165,46 @@ impl Database {
     ///
     /// ## Departments
     ///
+    /// Departments can be viewed and edited with the `"list"`, `"create"`, and `"delete"` query commands. Departments must be one word long.
+    /// ```rust
+    /// use std::collections::HashMap;
+    /// use employees::database::{Database, QueryResponse, Table};
+    ///
+    /// let mut db = Database::new();
+    ///
+    /// assert_eq!(
+    ///   db.query("form sales".to_string()),
+    ///   QueryResponse::Message("Formed \"Sales\" department".to_string())
+    /// );
+    ///
+    /// assert_eq!(
+    ///   db.query("show departments".to_string()),
+    ///   QueryResponse::Table(Table {
+    ///     title: "Showing all Departments".to_string(),
+    ///     headers: vec!["Department".to_string()],
+    ///     data: vec![{
+    ///       let mut data = HashMap::new();
+    ///       data.insert("Department".to_string(), "Sales".to_string());
+    ///       data
+    ///     }]
+    ///   })
+    /// );
+    ///
+    /// assert_eq!(
+    ///   db.query("dissolve sales".to_string()),
+    ///   QueryResponse::Message("Dissolved \"Sales\" department".to_string())
+    /// );
+    /// #
+    /// # assert_eq!(
+    /// #   db.query("show departments".to_string()),
+    /// #   QueryResponse::Table(Table {
+    /// #     title: "Showing all Departments".to_string(),
+    /// #     headers: vec!["Department".to_string()],
+    /// #     data: vec![]
+    /// #   })
+    /// # );
+    /// ```
+    ///
     /// ## Employees
     ///
     pub fn query(&mut self, query_string: String) -> QueryResponse {
@@ -232,8 +272,8 @@ impl Database {
 
     fn delete_department(&mut self, department_name: String) -> QueryResponse {
         match self.store.departments_mut().delete(&department_name) {
-            Ok(_) => {
-                QueryResponse::Message(format!("Dissolved \"{}\" department", department_name))
+            Ok(department) => {
+                QueryResponse::Message(format!("Dissolved \"{}\" department", department))
             }
             Err(query_error) => format_query_error(query_error),
         }
