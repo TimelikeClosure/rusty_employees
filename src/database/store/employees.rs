@@ -100,3 +100,32 @@ fn to_name(value: &str) -> String {
             name
         })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod employee {
+        use super::{Employee, to_name};
+
+        #[test]
+        fn new_returns_struct() {
+            assert_eq!(
+                Employee {
+                    name: to_name("Steve")
+                },
+                Employee::new("Steve")
+            );
+        }
+
+        #[test]
+        fn name_returns_name() {
+            let employee = Employee::new("Joe Mombo");
+
+            assert_eq!(
+                to_name("Joe Mombo"),
+                employee.name()
+            );
+        }
+    }
+}
