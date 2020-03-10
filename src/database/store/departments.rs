@@ -157,4 +157,92 @@ mod tests {
             assert_eq!(&employees, dept.employees());
         }
     }
+
+    mod departments {
+        use super::*;
+
+        mod department {}
+
+        mod department_mut {}
+
+        mod list {
+            use super::Departments;
+
+            #[test]
+            fn returns_dept_names() {
+                let mut depts = Departments::new();
+
+                assert_eq!(Vec::<String>::new(), depts.list());
+
+                depts.create("Archiving").unwrap();
+                depts.create("Legal").unwrap();
+                depts.create("Business").unwrap();
+
+                assert_eq!(
+                    vec![
+                        "Archiving".to_string(),
+                        "Business".to_string(),
+                        "Legal".to_string()
+                    ],
+                    depts.list()
+                );
+            }
+        }
+
+        mod create {
+            use super::{Departments, QueryError};
+
+            #[test]
+            fn creates_dept() {
+                let mut depts = Departments::new();
+
+                assert_eq!(Ok("Recovery".to_string()), depts.create("Recovery"));
+
+                assert_eq!(vec!["Recovery".to_string()], depts.list());
+            }
+
+            #[test]
+            fn fails_on_creating_duplicate() {
+                let mut depts = Departments::new();
+
+                depts.create("Rolling").unwrap();
+
+                assert_eq!(
+                    Err(QueryError::Conflict(
+                        "Department \"Rolling\" already exists".to_string()
+                    )),
+                    depts.create("Rolling")
+                );
+            }
+        }
+
+        mod delete {
+            use super::{Departments, QueryError};
+
+            #[test]
+            fn deletes_dept() {
+                let mut depts = Departments::new();
+
+                depts.create("Temps").unwrap();
+
+                assert_eq!(vec!["Temps".to_string()], depts.list());
+
+                assert_eq!(Ok("Temps".to_string()), depts.delete("Temps"));
+
+                assert_eq!(Vec::<String>::new(), depts.list());
+            }
+
+            #[test]
+            fn fails_on_missing_dept() {
+                let mut depts = Departments::new();
+
+                assert_eq!(
+                    Err(QueryError::NotFound(
+                        "Department \"Ghosts\" not found".to_string()
+                    )),
+                    depts.delete("Ghosts")
+                );
+            }
+        }
+    }
 }
