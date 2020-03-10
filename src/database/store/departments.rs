@@ -50,7 +50,7 @@ impl Departments {
     pub fn department(&self, department_name: &str) -> Result<&Department, QueryError> {
         match self.index.get(&to_key(department_name)) {
             None => Err(QueryError::NotFound(format!(
-                "Department \"{}\" does not exist",
+                "Department \"{}\" not found",
                 department_name
             ))),
             Some(department) => Ok(department),
@@ -60,7 +60,7 @@ impl Departments {
     pub fn department_mut(&mut self, department_name: &str) -> Result<&mut Department, QueryError> {
         match self.index.get_mut(&to_key(department_name)) {
             None => Err(QueryError::NotFound(format!(
-                "Department \"{}\" does not exist",
+                "Department \"{}\" not found",
                 department_name
             ))),
             Some(department) => Ok(department),
@@ -161,9 +161,55 @@ mod tests {
     mod departments {
         use super::*;
 
-        mod department {}
+        mod department {
+            use super::{Department, Departments, QueryError};
 
-        mod department_mut {}
+            #[test]
+            fn department_exists() {
+                let mut depts = Departments::new();
+
+                depts.create("Babies").unwrap();
+
+                assert_eq!(Ok(&(Department::new("Babies"))), depts.department("Babies"));
+            }
+
+            #[test]
+            fn department_doesnt_exist() {
+                let depts = Departments::new();
+
+                assert_eq!(
+                    Err(QueryError::NotFound(
+                        "Department \"Kittens\" not found".to_string()
+                    )),
+                    depts.department("Kittens")
+                );
+            }
+        }
+
+        mod department_mut {
+            use super::{Department, Departments, QueryError};
+
+            #[test]
+            fn department_exists() {
+                let mut depts = Departments::new();
+                depts.create("Timekeepers").unwrap();
+
+                let dept = depts.department_mut("Timekeepers").unwrap();
+                assert_eq!(&mut (Department::new("Timekeepers")), dept);
+            }
+
+            #[test]
+            fn department_doesnt_exist() {
+                let mut dept = Departments::new();
+
+                assert_eq!(
+                    Err(QueryError::NotFound(
+                        "Department \"Puppies\" not found".to_string()
+                    )),
+                    dept.department_mut("Puppies")
+                );
+            }
+        }
 
         mod list {
             use super::Departments;
