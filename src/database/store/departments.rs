@@ -115,3 +115,46 @@ fn to_name(value: &str) -> String {
         })
         .collect::<String>()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod department {
+        use super::{Department, Employees};
+
+        #[test]
+        fn name_returns_name() {
+            let dept = Department::new("Mail");
+            assert_eq!("Mail", dept.name());
+        }
+
+        #[test]
+        fn employees_returns_employees() {
+            let dept = Department::new("Staffing");
+            assert_eq!(&(Employees::new()), dept.employees());
+        }
+
+        #[test]
+        fn employees_mut_returns_mut_employees() {
+            let mut dept = Department::new("Playdoh");
+            dept.employees_mut().create("Ice Cream").unwrap();
+
+            let mut employees = Employees::new();
+            employees.create("Ice Cream").unwrap();
+
+            assert_eq!(&employees, dept.employees());
+        }
+
+        #[test]
+        fn assign_adds_new_employee() {
+            let mut dept = Department::new("Quests");
+            dept.assign("Johnny").unwrap();
+
+            let mut employees = Employees::new();
+            employees.create("Johnny").unwrap();
+
+            assert_eq!(&employees, dept.employees());
+        }
+    }
+}
