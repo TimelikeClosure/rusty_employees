@@ -588,23 +588,7 @@ mod tests {
     use super::*;
 
     mod database {
-        use super::{Database, Store};
-
-        mod new {
-            use super::{Database, Store};
-
-            #[test]
-            fn new_returns_an_empty_database() {
-                let db = Database::new();
-
-                assert_eq!(
-                    Database {
-                        store: Store::new()
-                    },
-                    db
-                );
-            }
-        }
+        use super::Database;
 
         mod seed {
             use super::Database;
