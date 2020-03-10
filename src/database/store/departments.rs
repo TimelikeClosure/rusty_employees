@@ -120,6 +120,24 @@ fn to_name(value: &str) -> String {
 mod tests {
     use super::*;
 
+    mod fn_to_key {
+        use super::to_key;
+
+        #[test]
+        fn capitalizes_all_letters() {
+            assert_eq!("SALSIFIERS".to_string(), to_key("Salsifiers"));
+        }
+    }
+
+    mod fn_to_name {
+        use super::to_name;
+
+        #[test]
+        fn capitalizes_word() {
+            assert_eq!("Chippers".to_string(), to_name("cHiPpErS"));
+        }
+    }
+
     mod department {
         use super::{Department, Employees};
 
