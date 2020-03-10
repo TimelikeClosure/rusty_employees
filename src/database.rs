@@ -207,6 +207,110 @@ impl Database {
     ///
     /// ## Employees
     ///
+    /// Employees can be viewed and edited with the `"list"`, `"assign"`, `"transfer"`, and `"pull"` query commands.
+    /// The `"list"` command can be used to show all employees on their own or group / filter by department.
+    ///
+    /// ```rust
+    /// # use std::collections::HashMap;
+    /// # use employees::database::{Database, QueryResponse, Table};
+    /// #
+    /// # let mut db = Database::new();
+    /// #
+    /// # db.query("form shipping".to_string());
+    /// # db.query("form receiving".to_string());
+    /// #
+    /// db.query("assign baby driver to shipping".to_string());
+    /// db.query("assign the blob to receiving".to_string());
+    /// db.query("assign portal to receiving".to_string());
+    /// db.query("assign portal to shipping".to_string());
+    ///
+    /// assert_eq!(
+    ///   db.query("list employees".to_string()),
+    ///   QueryResponse::Table(Table {
+    ///     title: "Showing all Employees".to_string(),
+    ///     headers: vec!["Employee".to_string()],
+    ///     data: vec![
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Employee".to_string(), "Baby Driver".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Employee".to_string(), "Portal".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Employee".to_string(), "Portal".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Employee".to_string(), "The Blob".to_string());
+    ///         data
+    ///       },
+    ///     ]
+    ///   })
+    /// );
+    ///
+    /// assert_eq!(
+    ///   db.query("list employees by department".to_string()),
+    ///   QueryResponse::Table(Table {
+    ///     title: "Showing Employees grouped by Department".to_string(),
+    ///     headers: vec!["Department".to_string(), "Employee".to_string()],
+    ///     data: vec![
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Department".to_string(), "Receiving".to_string());
+    ///         data.insert("Employee".to_string(), "Portal".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Department".to_string(), "Receiving".to_string());
+    ///         data.insert("Employee".to_string(), "The Blob".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Department".to_string(), "Shipping".to_string());
+    ///         data.insert("Employee".to_string(), "Baby Driver".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Department".to_string(), "Shipping".to_string());
+    ///         data.insert("Employee".to_string(), "Portal".to_string());
+    ///         data
+    ///       },
+    ///     ]
+    ///   })
+    /// );
+    ///
+    /// db.query("transfer the blob from receiving to shipping".to_string());
+    /// db.query("pull baby driver from shipping".to_string());
+    ///
+    /// assert_eq!(
+    ///   db.query("list employees in shipping".to_string()),
+    ///   QueryResponse::Table(Table {
+    ///     title: "Showing Employees assigned to the Shipping Department".to_string(),
+    ///     headers: vec!["Employee".to_string()],
+    ///     data: vec![
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Employee".to_string(), "Portal".to_string());
+    ///         data
+    ///       },
+    ///       {
+    ///         let mut data = HashMap::new();
+    ///         data.insert("Employee".to_string(), "The Blob".to_string());
+    ///         data
+    ///       },
+    ///     ]
+    ///   })
+    /// );
+    /// ```
     pub fn query(&mut self, query_string: String) -> QueryResponse {
         // Steps to completed execution
         // 1. Tokenize & parse query string into command (or return err on missing command / invalid command syntax)
