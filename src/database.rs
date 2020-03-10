@@ -588,7 +588,7 @@ mod tests {
     use super::*;
 
     mod database {
-        use super::Database;
+        use super::*;
 
         mod seed {
             use super::Database;
@@ -598,6 +598,17 @@ mod tests {
                 let mut db = Database::new();
                 db.seed();
                 assert_ne!(0, db.store.departments().list().len());
+            }
+        }
+
+        mod query {
+            use super::{Database, QueryResponse};
+
+            #[test]
+            fn runs_a_query() {
+                let mut db = Database::new();
+
+                assert_eq!(QueryResponse::NoOp, db.query("".to_string()));
             }
         }
     }
