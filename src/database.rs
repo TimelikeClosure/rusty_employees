@@ -601,4 +601,24 @@ mod tests {
             }
         }
     }
+
+    mod fn_format_query_error {
+        use super::{format_query_error, QueryError, QueryResponse};
+
+        #[test]
+        fn conflict() {
+            assert_eq!(
+                QueryResponse::Message("ERROR: Query conflict: How are you?".to_string()),
+                format_query_error(QueryError::Conflict("How are you?".to_string()))
+            );
+        }
+
+        #[test]
+        fn not_found() {
+            assert_eq!(
+                QueryResponse::Message("ERROR: Query target not found: I found it!".to_string()),
+                format_query_error(QueryError::NotFound("I found it!".to_string()))
+            )
+        }
+    }
 }
