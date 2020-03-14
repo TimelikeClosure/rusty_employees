@@ -216,8 +216,42 @@ fn user_can_list_all_employees_alphabetically() {
     }
 }
 
-// #[test]
-// fn user_can_list_all_employees_alphabetically_grouped_by_department_alphabetically() {}
+#[test]
+fn user_can_list_all_employees_alphabetically_grouped_by_department_alphabetically() {
+    let mut db = Database::new();
+
+    db.query("form parents".to_string());
+    db.query("form kids".to_string());
+
+    db.query("assign mommy to parents".to_string());
+    db.query("assign daddy to parents".to_string());
+    db.query("assign brother to kids".to_string());
+    db.query("assign sister to kids".to_string());
+
+    match db.query("list employees by department".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(4, table.data.len());
+
+            assert_eq!(
+                vec![
+                    ("Kids".to_string(), "Brother".to_string()),
+                    ("Kids".to_string(), "Sister".to_string()),
+                    ("Parents".to_string(), "Daddy".to_string()),
+                    ("Parents".to_string(), "Mommy".to_string()),
+                ],
+                table
+                    .data
+                    .iter()
+                    .map(|row| (
+                        row.get("Department").unwrap().to_owned(),
+                        row.get("Employee").unwrap().to_owned()
+                    ))
+                    .collect::<Vec<(String, String)>>()
+            );
+        }
+        _ => panic!(),
+    }
+}
 
 // #[test]
 // fn user_can_list_all_employees_alphabetically_in_a_department() {}
