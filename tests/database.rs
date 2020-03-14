@@ -63,11 +63,33 @@ fn user_can_see_help() {
     };
 }
 
-// #[test]
-// fn user_can_form_departments() {}
+#[test]
+fn user_can_form_departments() {
+    let mut db = Database::new();
+
+    match db.query("form Yesteryears".to_string()) {
+        QueryResponse::Message(message) => {
+            assert_eq!("Formed \"Yesteryears\" department", message);
+        },
+        _ => panic!(),
+    }
+
+    match db.query("show departments".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.data.len());
+
+            let department_row = &table.data[0];
+            assert_eq!(
+                "Yesteryears",
+                department_row.get("Department").unwrap()
+            );
+        },
+        _ => panic!(),
+    }
+}
 
 // #[test]
-// fn user_can_show_departments() {}
+// fn user_can_show_departments_alphabetically() {}
 
 // #[test]
 // fn user_can_dissolve_departments() {}
