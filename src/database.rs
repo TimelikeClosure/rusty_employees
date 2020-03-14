@@ -533,22 +533,27 @@ impl Database {
         from_department_name: String,
         to_department_name: String,
     ) -> QueryResponse {
-        if from_department_name == to_department_name {
+        if from_department_name.to_uppercase() == to_department_name.to_uppercase() {
             return QueryResponse::Message(String::from(
                 "ERROR: Cannot move employee from department to same department",
             ));
         }
+        let from_department_display_name;
         match self.store.department(&from_department_name) {
             Err(query_error) => return format_query_error(query_error),
             Ok(from_department) => {
+                from_department_display_name = from_department.name().to_owned();
                 if let Err(query_error) = from_department.employees().employee(&employee_name) {
                     return format_query_error(query_error);
                 }
             }
         };
+        let to_department_display_name;
+        let employee_display_name;
         match self.store.department_mut(&to_department_name) {
             Err(query_error) => return format_query_error(query_error),
             Ok(to_department) => {
+                to_department_display_name = to_department.name().to_owned();
                 if to_department
                     .employees_mut()
                     .create(&employee_name)
@@ -559,6 +564,12 @@ impl Database {
                         employee_name, to_department_name
                     )));
                 }
+                employee_display_name = to_department
+                    .employees()
+                    .employee(&employee_name)
+                    .unwrap()
+                    .name()
+                    .to_owned();
             }
         };
         self.store
@@ -568,8 +579,8 @@ impl Database {
             .delete(&employee_name)
             .unwrap();
         QueryResponse::Message(format!(
-            "Employee \"{}\" transferred from \"{}\" to \"{}\" department",
-            employee_name, from_department_name, to_department_name
+            "Transferred employee \"{}\" from \"{}\" to \"{}\" department",
+            employee_display_name, from_department_display_name, to_department_display_name
         ))
     }
 }

@@ -282,8 +282,55 @@ fn user_can_list_all_employees_alphabetically_in_a_department() {
     }
 }
 
-// #[test]
-// fn user_can_transfer_employees_between_departments() {}
+#[test]
+fn user_can_transfer_employees_between_departments() {
+    let mut db = Database::new();
+
+    db.query("form before".to_string());
+    db.query("form after".to_string());
+    db.query("assign homer to before".to_string());
+
+    match db.query("list employees in before".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.data.len());
+
+            assert_eq!("Homer", table.data[0].get("Employee").unwrap());
+        }
+        _ => panic!(),
+    }
+    match db.query("list employees in after".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(0, table.data.len());
+        }
+        _ => panic!(),
+    }
+
+    match db.query("transfer homer from before to after".to_string()) {
+        QueryResponse::Message(message) => {
+            assert_eq!(
+                "Transferred employee \"Homer\" from \"Before\" to \"After\" department"
+                    .to_string(),
+                message
+            );
+        }
+        _ => panic!(),
+    }
+
+    match db.query("list employees in before".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(0, table.data.len());
+        }
+        _ => panic!(),
+    }
+    match db.query("list employees in after".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.data.len());
+
+            assert_eq!("Homer", table.data[0].get("Employee").unwrap());
+        }
+        _ => panic!(),
+    }
+}
 
 // #[test]
 // fn user_can_pull_employees_from_departments() {}
