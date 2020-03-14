@@ -62,3 +62,30 @@ fn user_can_see_help() {
         _ => panic!(),
     };
 }
+
+// #[test]
+// fn user_can_form_departments() {}
+
+// #[test]
+// fn user_can_show_departments() {}
+
+// #[test]
+// fn user_can_dissolve_departments() {}
+
+// #[test]
+// fn user_can_assign_employees_to_departments() {}
+
+// #[test]
+// fn user_can_list_all_employees_alphabetically() {}
+
+// #[test]
+// fn user_can_list_all_employees_alphabetically_grouped_by_department_alphabetically() {}
+
+// #[test]
+// fn user_can_list_all_employees_alphabetically_in_a_department() {}
+
+// #[test]
+// fn user_can_transfer_employees_between_departments() {}
+
+// #[test]
+// fn user_can_pull_employees_from_departments() {}
