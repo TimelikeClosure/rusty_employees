@@ -88,8 +88,44 @@ fn user_can_form_departments() {
     }
 }
 
-// #[test]
-// fn user_can_show_departments_alphabetically() {}
+#[test]
+fn user_can_show_departments_alphabetically() {
+    let mut db = Database::new();
+
+    db.query("form waffles".to_string());
+    db.query("form pancakes".to_string());
+    db.query("form scrambles".to_string());
+    db.query("form sunnies".to_string());
+    db.query("form boileds".to_string());
+    db.query("form poacheds".to_string());
+
+    match db.query("show departments".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.headers.len());
+
+            let header_name = "Department".to_string();
+            assert_eq!(header_name, table.headers[0]);
+
+            assert_eq!(6, table.data.len());
+
+            let departments = table.data.iter()
+                .map(|row| row.get(&header_name).unwrap().to_owned())
+                .collect::<Vec<String>>();
+            assert_eq!(
+                vec![
+                    "Boileds".to_string(),
+                    "Pancakes".to_string(),
+                    "Poacheds".to_string(),
+                    "Scrambles".to_string(),
+                    "Sunnies".to_string(),
+                    "Waffles".to_string(),
+                ],
+                departments
+            );
+        },
+        _ => panic!(),
+    }
+}
 
 // #[test]
 // fn user_can_dissolve_departments() {}
