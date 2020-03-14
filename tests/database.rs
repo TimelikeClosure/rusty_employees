@@ -332,5 +332,36 @@ fn user_can_transfer_employees_between_departments() {
     }
 }
 
-// #[test]
-// fn user_can_pull_employees_from_departments() {}
+#[test]
+fn user_can_pull_employees_from_departments() {
+    let mut db = Database::new();
+
+    db.query("form hr".to_string());
+    db.query("assign margaret to hr".to_string());
+
+    match db.query("list employees in hr".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.data.len());
+
+            assert_eq!("Margaret", table.data[0].get("Employee").unwrap());
+        }
+        _ => panic!(),
+    }
+
+    match db.query("pull margaret from hr".to_string()) {
+        QueryResponse::Message(message) => {
+            assert_eq!(
+                "Pulled employee \"margaret\" from department \"hr\"",
+                message
+            );
+        }
+        _ => panic!(),
+    }
+
+    match db.query("list employees in hr".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(0, table.data.len());
+        }
+        _ => panic!(),
+    }
+}
