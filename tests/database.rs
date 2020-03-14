@@ -70,7 +70,7 @@ fn user_can_form_departments() {
     match db.query("form Yesteryears".to_string()) {
         QueryResponse::Message(message) => {
             assert_eq!("Formed \"Yesteryears\" department", message);
-        },
+        }
         _ => panic!(),
     }
 
@@ -79,11 +79,8 @@ fn user_can_form_departments() {
             assert_eq!(1, table.data.len());
 
             let department_row = &table.data[0];
-            assert_eq!(
-                "Yesteryears",
-                department_row.get("Department").unwrap()
-            );
-        },
+            assert_eq!("Yesteryears", department_row.get("Department").unwrap());
+        }
         _ => panic!(),
     }
 }
@@ -108,7 +105,9 @@ fn user_can_show_departments_alphabetically() {
 
             assert_eq!(6, table.data.len());
 
-            let departments = table.data.iter()
+            let departments = table
+                .data
+                .iter()
                 .map(|row| row.get(&header_name).unwrap().to_owned())
                 .collect::<Vec<String>>();
             assert_eq!(
@@ -122,13 +121,38 @@ fn user_can_show_departments_alphabetically() {
                 ],
                 departments
             );
-        },
+        }
         _ => panic!(),
     }
 }
 
-// #[test]
-// fn user_can_dissolve_departments() {}
+#[test]
+fn user_can_dissolve_departments() {
+    let mut db = Database::new();
+
+    db.query("form finances".to_string());
+
+    match db.query("show departments".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.data.len());
+        }
+        _ => panic!(),
+    }
+
+    match db.query("dissolve finances".to_string()) {
+        QueryResponse::Message(message) => {
+            assert_eq!("Dissolved \"Finances\" department".to_string(), message);
+        }
+        _ => panic!(),
+    }
+
+    match db.query("show departments".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(0, table.data.len());
+        }
+        _ => panic!(),
+    }
+}
 
 // #[test]
 // fn user_can_assign_employees_to_departments() {}
