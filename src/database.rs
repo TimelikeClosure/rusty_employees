@@ -366,7 +366,8 @@ impl Database {
             Ok(department) => match department.employees_mut().create(&employee_name) {
                 Ok(employee) => QueryResponse::Message(format!(
                     "Assigned employee \"{}\" to {} department",
-                    employee, department_name
+                    employee,
+                    department.name()
                 )),
                 Err(query_error) => format_query_error(query_error),
             },

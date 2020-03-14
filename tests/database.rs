@@ -154,8 +154,38 @@ fn user_can_dissolve_departments() {
     }
 }
 
-// #[test]
-// fn user_can_assign_employees_to_departments() {}
+#[test]
+fn user_can_assign_employees_to_departments() {
+    let mut db = Database::new();
+
+    db.query("form hr".to_string());
+
+    match db.query("list employees in hr".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(0, table.data.len());
+        }
+        _ => panic!(),
+    }
+
+    match db.query("assign margaret to hr".to_string()) {
+        QueryResponse::Message(message) => {
+            assert_eq!(
+                "Assigned employee \"Margaret\" to Hr department".to_string(),
+                message
+            );
+        }
+        _ => panic!(),
+    }
+
+    match db.query("list employees in hr".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(1, table.data.len());
+
+            assert_eq!("Margaret", table.data[0].get("Employee").unwrap());
+        }
+        _ => panic!(),
+    }
+}
 
 // #[test]
 // fn user_can_list_all_employees_alphabetically() {}
