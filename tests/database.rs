@@ -187,8 +187,34 @@ fn user_can_assign_employees_to_departments() {
     }
 }
 
-// #[test]
-// fn user_can_list_all_employees_alphabetically() {}
+#[test]
+fn user_can_list_all_employees_alphabetically() {
+    let mut db = Database::new();
+
+    db.query("form parents".to_string());
+    db.query("form kids".to_string());
+
+    db.query("assign mommy to parents".to_string());
+    db.query("assign daddy to parents".to_string());
+    db.query("assign brother to kids".to_string());
+    db.query("assign sister to kids".to_string());
+
+    match db.query("list employees".to_string()) {
+        QueryResponse::Table(table) => {
+            assert_eq!(4, table.data.len());
+
+            assert_eq!(
+                vec!["Brother", "Daddy", "Mommy", "Sister",],
+                table
+                    .data
+                    .iter()
+                    .map(|row| row.get("Employee").unwrap())
+                    .collect::<Vec<&String>>()
+            );
+        }
+        _ => panic!(),
+    }
+}
 
 // #[test]
 // fn user_can_list_all_employees_alphabetically_grouped_by_department_alphabetically() {}
